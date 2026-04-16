@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蘑法知识库 - 蘑法识界</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 统一颜色变量 */
+        :root {
+            --primary-orange: #FF9800;
+            --primary-green: #4CAF50;
+            --light-green: #8BC34A;
+            --light-orange: #FFB74D;
+            --warning-color: #FF9800;
+            --success-color: #4CAF50;
+            --toxic-color: #f44336;
+            --medicinal-color: #FF9800;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7f4;
+            background-image: linear-gradient(to bottom right, #e9f5eb, #d4ede1);
+            color: #2d4a3a;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .mushroom-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="30" r="25" fill="%234CAF50"/><ellipse cx="50" cy="70" rx="30" ry="20" fill="%23FF9800"/></svg>');
+            background-size: 120px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 头部区域 */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(139, 195, 74, 0.3);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 3.5rem;
+            color: var(--primary-orange);
+            filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.4));
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(to right, var(--primary-orange), var(--primary-green), var(--light-green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+        
+        /* 统一按钮样式 */
+        .back-btn, .search-btn, .btn {
+            background: linear-gradient(to right, var(--primary-green), var(--light-green));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            text-decoration: none;
+        }
+        
+        .back-btn:hover, .search-btn:hover, .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, var(--primary-orange), var(--light-orange));
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 6px 18px rgba(255, 152, 0, 0.4);
+        }
+        
+        /* 搜索区域 */
+        .search-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            margin-bottom: 40px;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #c5e1a5;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        
+        .search-btn {
+            background: linear-gradient(to right, #FF9800, #FFB74D);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+        
+        /* 多选分类筛选器容器 */
+        .filter-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            margin-bottom: 30px;
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0f2e9;
+        }
+        
+        .filter-header h3 {
+            color: #FF9800;
+            font-size: 1.4rem;
+        }
+        
+        .clear-filters {
+            background: #f0f7f4;
+            color: #4CAF50;
+            border: 1px solid #c5e1a5;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .clear-filters:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .filter-groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .filter-group {
+            margin-bottom: 10px;
+        }
+        
+        .filter-group-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2d4a3a;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group-title i {
+            color: #FF9800;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-checkbox {
+            display: none;
+        }
+        
+        .filter-label {
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .filter-label:hover {
+            background-color: #e8f5e9;
+            transform: translateY(-2px);
+        }
+        
+        .filter-checkbox:checked + .filter-label {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .filter-checkbox:checked + .filter-label .checkbox-icon {
+            color: white;
+        }
+        
+        .checkbox-icon {
+            color: #4CAF50;
+            font-size: 0.8rem;
+        }
+        
+        .selected-filters {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0f2e9;
+        }
+        
+        .selected-filters h4 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #2d4a3a;
+        }
+        
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .selected-tag {
+            background-color: #FF9800;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .remove-tag {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 蘑菇图库 */
+        .mushroom-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .mushroom-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+        }
+        
+        .mushroom-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .mushroom-img {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background-color: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mushroom-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .mushroom-info {
+            padding: 20px;
+        }
+        
+        .mushroom-info h3 {
+            color: #FF9800;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .mushroom-info p {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .mushroom-info strong {
+            color: #4CAF50;
+        }
+        
+        /* 蘑菇详情模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #FF9800;
+        }
+        
+        .modal h3 {
+            color: #FF9800;
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        
+        .mushroom-detail-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background-color: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: #4CAF50;
+        }
+        
+        .detail-section {
+            margin-bottom: 25px;
+        }
+        
+        .detail-section h4 {
+            color: #FF9800;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .detail-item h5 {
+            color: #4CAF50;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .warning-box {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 5px solid #FF9800;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            color: #4CAF50;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(139, 195, 74, 0.3);
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(139, 195, 74, 0.3);
+            border-radius: 50%;
+            border-top-color: #FF9800;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .mushroom-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-groups {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 漂浮蘑菇动画 */
+        .fungus-animation {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            opacity: 0.3;
+            z-index: -1;
+            font-size: 2rem;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        /* 可食用性标签 */
+        .edibility-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .edible {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .toxic {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .medicinal {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .poisonous {
+            background-color: #fce4ec;
+            color: #880e4f;
+        }
+        
+        .unknown {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+        
+        /* 知识库统计 */
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            color: #FF9800;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #4CAF50;
+            font-size: 1rem;
+        }
+        
+        /* 扩展信息样式 */
+        .extra-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .extra-info-item {
+            background-color: #f9fdf7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #8BC34A;
+        }
+        
+        .extra-info-item h6 {
+            color: #4CAF50;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        
+        @media (max-width: 768px) {
+            .extra-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mushroom-bg"></div>
+    
+    <!-- 漂浮的蘑菇动画 -->
+    <div class="fungus-animation" style="top:10%; left:5%; animation: float 6s ease-in-out infinite;">🍄</div>
+    <div class="fungus-animation" style="top:20%; right:8%; animation: float 8s ease-in-out infinite 1s;">🍄</div>
+    <div class="fungus-animation" style="bottom:30%; left:8%; animation: float 7s ease-in-out infinite 0.5s;">🍄</div>
+    
+    <div class="container">
+        <!-- 头部区域 -->
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-book-open logo-icon"></i>
+                <div>
+                    <h1>蘑法知识库</h1>
+                    <p style="color: #4CAF50; margin-top: 5px;">全面了解真菌世界，掌握蘑菇的奥秘</p>
+                </div>
+            </div>
+            <a href="mushroom.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> 返回识别局
+            </a>
+        </div>
+        
+        <!-- 知识库统计 -->
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number" id="totalMushrooms">0</div>
+                <div class="stat-label">蘑菇种类</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="edibleCount">0</div>
+                <div class="stat-label">可食用蘑菇</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="toxicCount">0</div>
+                <div class="stat-label">有毒蘑菇</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="medicinalCount">0</div>
+                <div class="stat-label">药用蘑菇</div>
+            </div>
+        </div>
+        
+        <!-- 搜索和筛选区域 -->
+        <section class="search-section">
+            <h2><i class="fas fa-search"></i> 搜索蘑菇知识</h2>
+            <p>通过名称、特征或可食用性快速查找您感兴趣的蘑菇</p>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="输入蘑菇名称或特征进行搜索...">
+                <button class="search-btn" id="searchBtn">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
+            </div>
+        </section>
+        
+        <!-- 多选分类筛选器 -->
+        <div class="filter-container">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> 分类筛选</h3>
+                <button class="clear-filters" id="clearFilters">
+                    <i class="fas fa-times"></i> 清除筛选
+                </button>
+            </div>
+            
+            <div class="filter-groups">
+                <!-- 可食用性组 -->
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <i class="fas fa-utensils"></i> 可食用性
+                    </div>
+                    <div class="filter-options">
+                        <input type="checkbox" class="filter-checkbox" id="edible-filter" value="edible">
+                        <label class="filter-label" for="edible-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            可食用
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="toxic-filter" value="toxic">
+                        <label class="filter-label" for="toxic-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            有毒
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="poisonous-filter" value="poisonous">
+                        <label class="filter-label" for="poisonous-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            剧毒
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="medicinal-filter" value="medicinal">
+                        <label class="filter-label" for="medicinal-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            药用
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 常见程度组 -->
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <i class="fas fa-chart-line"></i> 常见程度
+                    </div>
+                    <div class="filter-options">
+                        <input type="checkbox" class="filter-checkbox" id="common-filter" value="common">
+                        <label class="filter-label" for="common-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            常见
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="rare-filter" value="rare">
+                        <label class="filter-label" for="rare-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            稀有
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 生长方式组 -->
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <i class="fas fa-tree"></i> 生长方式
+                    </div>
+                    <div class="filter-options">
+                        <input type="checkbox" class="filter-checkbox" id="wild-filter" value="wild">
+                        <label class="filter-label" for="wild-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            野生
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="cultivated-filter" value="cultivated">
+                        <label class="filter-label" for="cultivated-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            栽培
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="symbiotic-filter" value="symbiotic">
+                        <label class="filter-label" for="symbiotic-filter">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            共生
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="selected-filters">
+                <h4>已选筛选条件：</h4>
+                <div class="selected-tags" id="selectedTags">
+                    <!-- 已选标签将在这里动态生成 -->
+                    <div class="selected-tag" style="background-color: #f1f8e9; color: #2d4a3a;">
+                        无筛选条件
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 蘑菇图库 -->
+        <section id="mushroomList">
+            <h2><i class="fas fa-th-large"></i> 蘑菇知识库</h2>
+            <p>点击任意蘑菇卡片查看详细信息</p>
+            
+            <!-- 加载动画 -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在加载蘑法知识库...</p>
+            </div>
+            
+            <!-- 蘑菇列表将通过JavaScript动态生成 -->
+            <div class="mushroom-gallery" id="mushroomGallery"></div>
+        </section>
+        
+        <footer>
+            <p>蘑法识界知识库 &copy; 2023 | 探索真菌世界，学习蘑菇奥秘</p>
+            <p>注意：本知识库信息仅供参考，食用野生蘑菇前请咨询专家。</p>
+            <p>知识来源：蘑法识别团队 | 最后更新：2026年2月</p>
+        </footer>
+    </div>
+
+    <!-- 蘑菇详情模态框 -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeDetailModal">&times;</span>
+            <div id="detailContent">
+                <!-- 蘑菇详情将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 扩展的蘑菇数据库（包含更多种类）
+        const mushroomDatabase = [
+            {
+                id: 1,
+                name: "鸡油菌",
+                scientificName: "Cantharellus cibarius",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "针叶林和阔叶林，常见于松树、橡树、山毛榉等树木下",
+                season: "夏季至秋季（6-10月）",
+                distribution: "北半球温带地区，包括欧洲、北美、亚洲北部",
+                description: "鸡油菌是一种珍贵的野生食用菌，因其颜色如鸡油般金黄而得名。菌盖呈喇叭形或漏斗形，直径3-10厘米，边缘波状卷曲。菌肉厚实，质地脆嫩，具有独特的杏子香味和微辣口感。富含维生素A、C、D以及多种矿物质，是传统的法国菜肴中的重要食材。鸡油菌与树木形成外生菌根关系，有助于树木吸收营养，因此难以人工栽培。",
+                warning: "鸡油菌与有毒的丝膜菌属蘑菇在外形上有些相似，需注意区分。真正的鸡油菌菌褶厚而稀疏，呈分叉状延生，且不会快速变黑。采摘时请确保由有经验的人士指导。",
+                category: ["edible", "common", "wild"],
+                uses: ["食用", "药用"],
+                characteristics: "菌盖喇叭形，边缘波状，颜色金黄至橙色，菌肉白色，受伤不变色，菌褶分叉、稀疏、延生，菌柄与菌盖同色，长3-8厘米",
+                icon: "🍄",
+                taste: "鲜美，有杏子香味和微辣口感",
+                nutritionalValue: "富含维生素A、C、D，胡萝卜素，钾，铁，锌",
+                cookingTips: "适合清炒、炖汤、煎烤。烹饪前无需长时间浸泡，简单冲洗即可。与奶油、大蒜、香草搭配最佳。"
+            },
+            {
+                id: 2,
+                name: "毒蝇伞",
+                scientificName: "Amanita muscaria",
+                edibility: "toxic",
+                edibilityText: "有毒",
+                habitat: "桦木林、松树林、云杉林，与这些树木形成共生关系",
+                season: "夏季至秋季（7-11月）",
+                distribution: "北半球温带和寒带地区，广泛分布于欧洲、亚洲、北美",
+                description: "毒蝇伞是世界上最著名的蘑菇之一，以其鲜艳的红色菌盖和白色斑点而易于识别。菌盖直径8-20厘米，初为球形后平展，表面有白色至淡黄色的疣状鳞片。含有多种神经毒素，包括蝇蕈醇和鹅膏蕈氨酸，能引起幻觉、恶心、肌肉抽搐等症状。有趣的是，经过特殊处理（如煮沸多次并弃去煮水）后，在一些文化中被用作致幻剂，但这是非常危险的，不推荐尝试。历史上，西伯利亚的萨满教巫师使用毒蝇伞进行宗教仪式。",
+                warning: "毒蝇伞含有多种神经毒素，食用后可能出现幻觉、恶心、呕吐、肌肉抽搐等症状，严重时可导致昏迷甚至死亡。绝对不要尝试食用或作为致幻剂使用。",
+                category: ["toxic", "common", "hallucinogenic"],
+                uses: ["无食用价值", "研究用途", "传统文化用途"],
+                characteristics: "菌盖鲜红色，有白色至淡黄色疣状鳞片，直径8-20厘米，菌褶白色，离生，菌柄白色，基部膨大呈球状，有菌环，菌托明显",
+                icon: "🍄",
+                toxins: "蝇蕈醇、鹅膏蕈氨酸、毒蝇碱等",
+                symptoms: "幻觉、恶心、呕吐、肌肉抽搐、困倦、昏迷",
+                interestingFact: "毒蝇伞的名字来源于其传统用途——与牛奶混合后用于毒杀苍蝇。它也是《爱丽丝梦游仙境》和《超级马里奥》中蘑菇的原型。"
+            },
+            {
+                id: 3,
+                name: "松茸",
+                scientificName: "Tricholoma matsutake",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "松树林，特别是赤松林，与松树形成菌根关系",
+                season: "秋季（9-11月）",
+                distribution: "日本、中国、韩国、北美、北欧等地的松林地区",
+                description: "松茸是世界上最珍贵的食用菌之一，在日本被视为'森林钻石'，每公斤价格可达数千元。它具有强烈的独特香气，被形容为'松树、肉桂和泥土的混合香味'。菌盖直径5-20厘米，初为半球形后平展，表面褐色，有纤维状鳞片。松茸的珍贵在于其难以人工栽培，完全依赖野生采集，且生长条件苛刻，需要特定的树种、土壤酸碱度和气候条件。它含有丰富的蛋白质、多种氨基酸、维生素和矿物质，具有很高的营养价值。",
+                warning: "松茸价格昂贵，市场上常有假冒产品。购买时请选择信誉良好的商家。新鲜松茸保存时间短，最好在采摘后3天内食用。",
+                category: ["edible", "rare", "luxury"],
+                uses: ["高级食材", "药用", "礼品"],
+                characteristics: "菌盖褐色，有纤维状鳞片，直径5-20厘米，菌肉白色，菌褶白色至奶油色，菌柄粗壮，长10-20厘米，有膜质菌环",
+                icon: "🍄",
+                aroma: "强烈的独特香气，混合松树、肉桂和泥土的香味",
+                marketValue: "每公斤数千元，视品质和产地而定",
+                healthBenefits: "增强免疫力，抗氧化，抗肿瘤，降血糖"
+            },
+            {
+                id: 4,
+                name: "灵芝",
+                scientificName: "Ganoderma lucidum",
+                edibility: "medicinal",
+                edibilityText: "药用",
+                habitat: "阔叶树桩、倒木、活树的基部，特别是栎树、枫树",
+                season: "全年，但夏秋季节最常见",
+                distribution: "全球温带和热带地区，主要分布在亚洲",
+                description: "灵芝是中国传统医学中最著名的药用真菌，已有2000多年的使用历史，被称为'仙草'。它不是典型的伞菌，而是多孔菌，菌盖呈肾形或半圆形，表面有漆样光泽，颜色从红色到紫黑色不等。灵芝含有多种生物活性成分，包括多糖、三萜类化合物、甾醇等，具有免疫调节、抗肿瘤、抗氧化、保肝等多种药理作用。在现代医学研究中，灵芝提取物被用于辅助治疗癌症、糖尿病和心血管疾病。",
+                warning: "灵芝主要用于药用，不建议作为普通食物大量食用。孕妇、哺乳期妇女和正在服用抗凝血药物的人应在医生指导下使用。市场上的灵芝产品质量参差不齐，请选择正规产品。",
+                category: ["medicinal", "traditional"],
+                uses: ["药用", "保健", "茶饮"],
+                characteristics: "菌盖肾形或半圆形，直径5-25厘米，厚1-3厘米，表面有漆样光泽，颜色红色至紫黑色，菌肉木质，菌管层白色至淡褐色",
+                icon: "🌿",
+                activeCompounds: "多糖、三萜类化合物、甾醇、腺苷等",
+                medicinalUses: "增强免疫力，抗肿瘤，抗氧化，保肝，改善睡眠，降血糖",
+                cultivation: "可人工栽培，但野生灵芝更受追捧"
+            },
+            {
+                id: 5,
+                name: "羊肚菌",
+                scientificName: "Morchella esculenta",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "林地、草地、河岸、火烧迹地，特别是苹果园和榆树林",
+                season: "春季（3-5月）",
+                distribution: "北半球温带地区，包括欧洲、北美、亚洲",
+                description: "羊肚菌是一种春季生长的珍稀食用菌，因其菌盖表面呈蜂窝状，形似羊肚而得名。它是世界上最昂贵的野生蘑菇之一，每公斤价格可达数百至数千美元。羊肚菌味道鲜美，具有坚果风味和独特的香气，是法式高级料理的经典食材。近年来，羊肚菌的人工栽培技术取得突破，但野生羊肚菌仍然更受青睐。它富含蛋白质、多种氨基酸、维生素和矿物质，营养价值极高。",
+                warning: "羊肚菌必须彻底煮熟后才能食用，生食可能引起肠胃不适。有一种与羊肚菌相似的有毒蘑菇——假羊肚菌，其菌盖不是真正的蜂窝状而是脑回状，且切开后不是中空。采摘时需仔细辨别。",
+                category: ["edible", "rare", "spring"],
+                uses: ["高级食材", "药用"],
+                characteristics: "菌盖圆锥形或椭圆形，高5-15厘米，表面蜂窝状，颜色淡黄色至深褐色，菌柄中空，白色至淡黄色",
+                icon: "🍄",
+                flavor: "坚果风味，香气独特",
+                price: "每公斤数百至数千美元，视品质而定",
+                identificationTip: "真正的羊肚菌菌柄中空，菌盖蜂窝状规则；假羊肚菌菌盖脑回状，菌柄实心或填充状"
+            },
+            {
+                id: 6,
+                name: "毁灭天使（白毒伞）",
+                scientificName: "Amanita virosa",
+                edibility: "poisonous",
+                edibilityText: "剧毒",
+                habitat: "阔叶林和针叶林，特别是桦木林和松树林",
+                season: "夏季至秋季（7-10月）",
+                distribution: "欧洲和北美洲",
+                description: "白毒伞是世界上最毒的蘑菇之一，含有致命的鹅膏毒素，对肝脏和肾脏有极强的破坏作用。菌盖纯白色，直径5-12厘米，初为卵形后平展，表面光滑。菌柄细长，有膜质菌环，基部有袋状菌托。白毒伞的毒素非常稳定，耐高温和干燥，烹饪无法破坏。中毒症状有潜伏期（6-24小时），初期症状类似胃肠炎，随后出现'假愈期'，最后肝功能衰竭导致死亡。死亡率高达50%以上，即使及时就医也常留下永久性肝损伤。",
+                warning: "白毒伞是剧毒蘑菇，即使少量食用也可能致命。它的外观与可食用的白色蘑菇相似，极易误食。绝对不要采摘或食用任何白色野生蘑菇，除非您是专业真菌学家。",
+                category: ["poisonous", "deadly"],
+                uses: ["无"],
+                characteristics: "菌盖纯白色，直径5-12厘米，表面光滑，菌褶白色，离生，菌柄白色，细长，有膜质菌环，基部有袋状菌托",
+                icon: "☠️",
+                toxins: "鹅膏毒素（α-鹅膏蕈碱等）",
+                symptoms: "潜伏期6-24小时，初期恶心呕吐腹痛，假愈期1-2天，随后肝功能衰竭、黄疸、昏迷",
+                mortalityRate: "50%以上，即使及时治疗"
+            },
+            {
+                id: 7,
+                name: "海鲜菇",
+                scientificName: "Hypsizygus marmoreus",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "阔叶树木（自然生长），现多为人工栽培",
+                season: "全年（人工栽培）",
+                distribution: "原产亚洲，现全球人工栽培",
+                description: "海鲜菇是一种人工栽培的食用菌，因其具有海鲜的鲜味而得名，也称'蟹味菇'。菌盖小巧，直径2-5厘米，颜色灰褐色至淡棕色，表面有网状花纹。菌柄细长，白色，口感脆嫩。海鲜菇营养丰富，含有多种氨基酸、维生素和矿物质，特别是富含赖氨酸和精氨酸。它具有独特的海鲜风味，适合多种烹饪方式，是日式料理和火锅的常见食材。现代研究表明，海鲜菇具有增强免疫力、抗肿瘤等保健功能。",
+                warning: "海鲜菇是安全可食用的，但必须彻底煮熟。购买时选择新鲜、无霉变、无异味的产品。对蘑菇过敏的人群应谨慎食用。",
+                category: ["edible", "cultivated", "common"],
+                uses: ["食用", "保健"],
+                characteristics: "菌盖小巧，直径2-5厘米，灰褐色至淡棕色，表面有网状花纹，菌褶白色，菌柄细长，白色，长5-15厘米",
+                icon: "🍄",
+                flavor: "独特的海鲜风味，类似蟹肉",
+                nutritionalValue: "富含蛋白质、氨基酸、维生素B族、维生素D、钾、磷",
+                cookingMethods: "适合炒、煮、炖、烤、火锅"
+            },
+            {
+                id: 8,
+                name: "红菇",
+                scientificName: "Russula emetica",
+                edibility: "toxic",
+                edibilityText: "有毒",
+                habitat: "针叶林和阔叶林，特别是松林和橡树林",
+                season: "夏季至秋季（7-10月）",
+                distribution: "北半球温带地区，广泛分布",
+                description: "红菇是一大类蘑菇的统称，这里特指有毒的红菇（Russula emetica）。菌盖鲜艳红色，直径5-10厘米，表面光滑，边缘有条纹。菌肉白色，脆而易碎，味道极辣。红菇含有胃肠道刺激物，误食会引起严重的呕吐和腹泻，因此得名'呕吐红菇'。虽然毒性相对较低，一般不致命，但中毒过程非常痛苦。需要注意的是，红菇属有数百种，有些是可食的（如正红菇），有些是有毒的，非专业人士很难准确区分。",
+                warning: "红菇有毒，不可食用。虽然有些红菇属种类可食，但难以准确区分，建议不要采摘食用任何红色野生蘑菇。误食会引起严重的呕吐、腹泻和腹痛。",
+                category: ["toxic", "common"],
+                uses: ["无食用价值", "研究用途"],
+                characteristics: "菌盖鲜艳红色，直径5-10厘米，表面光滑，边缘有条纹，菌褶白色，等长，菌柄白色，脆而易碎",
+                icon: "🍄",
+                taste: "极辣",
+                symptoms: "恶心、呕吐、腹泻、腹痛，通常在食用后30分钟至2小时内出现",
+                note: "红菇属种类繁多，颜色多样，非专业人士难以准确识别"
+            },
+            {
+                id: 9,
+                name: "猴头菇",
+                scientificName: "Hericium erinaceus",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "阔叶树木，特别是栎树、山毛榉、枫树的枯木或伤口处",
+                season: "秋季（9-11月）",
+                distribution: "亚洲、欧洲和北美洲的温带地区",
+                description: "猴头菇是一种珍贵的食用菌和药用菌，因其子实体形状像猴子头而得名。它不是典型的伞菌，而是齿菌，表面有长而下垂的刺。猴头菇肉质鲜美，口感类似肉类，有'素中荤'的美誉。在传统中医中，猴头菇用于治疗消化不良、胃溃疡和神经衰弱。现代研究证实，猴头菇含有多种生物活性物质，具有保护胃黏膜、促进神经生长因子合成、抗肿瘤、抗氧化等多种功效。近年来，猴头菇的人工栽培技术成熟，使其成为大众化的保健食品。",
+                warning: "猴头菇是安全可食用的，但必须彻底煮熟。对蘑菇过敏的人群应谨慎食用。市场上的猴头菇产品众多，请选择正规厂家的产品。",
+                category: ["edible", "medicinal", "cultivated"],
+                uses: ["食用", "药用", "保健"],
+                characteristics: "子实体块状或头状，直径5-20厘米，表面有长而下垂的白色至淡黄色菌刺，长1-3厘米",
+                icon: "🍄",
+                texture: "肉质，口感类似肉类",
+                healthBenefits: "保护胃黏膜，促进消化，增强免疫力，改善记忆，抗抑郁，抗氧化",
+                cultivation: "可人工栽培，已实现规模化生产"
+            },
+            {
+                id: 10,
+                name: "鸡枞菌",
+                scientificName: "Termitomyces albuminosus",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "白蚁巢附近，与白蚁形成共生关系",
+                season: "夏季雨季（6-9月）",
+                distribution: "亚洲和非洲的热带和亚热带地区，中国西南地区最多",
+                description: "鸡枞菌是一种与白蚁共生的珍贵食用菌，在中国西南地区被誉为'菌中之王'。菌盖直径5-20厘米，初为圆锥形后平展，中央有凸起，颜色灰褐色至深褐色。菌柄粗壮，基部有假根延伸至白蚁巢中。鸡枞菌味道极其鲜美，肉质细嫩，具有独特的鸡肉香味，因此得名。它富含蛋白质、多种氨基酸、维生素和矿物质，营养价值极高。鸡枞菌的生长完全依赖白蚁巢，难以人工栽培，因此价格昂贵。",
+                warning: "鸡枞菌是安全的可食用菌，但因其生长环境特殊，采摘时应注意安全，避免破坏白蚁巢。市场上偶有假冒产品，请选择信誉良好的商家。",
+                category: ["edible", "rare", "symbiotic"],
+                uses: ["高级食材", "药用"],
+                characteristics: "菌盖灰褐色至深褐色，直径5-20厘米，中央凸起，菌肉白色，菌褶白色至奶油色，菌柄粗壮，基部有假根",
+                icon: "🍄",
+                flavor: "极其鲜美，有独特的鸡肉香味",
+                symbiosis: "与大白蚁亚科的白蚁共生，菌丝体生长在白蚁巢中",
+                rarity: "难以人工栽培，完全依赖野生采集"
+            },
+            {
+                id: 11,
+                name: "金针菇",
+                scientificName: "Flammulina velutipes",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "阔叶树木的枯木或伤口处，现多为人工栽培",
+                season: "秋冬季（自然生长），全年（人工栽培）",
+                distribution: "全球温带地区，现全球人工栽培",
+                description: "金针菇是最常见的食用菌之一，因其菌柄细长如金针而得名。菌盖小巧，直径1-3厘米，颜色从白色到淡黄色不等。菌柄细长，上部淡黄色，下部深褐色，有绒毛。金针菇富含多种氨基酸，特别是赖氨酸和精氨酸，有助于儿童智力发育，因此被称为'增智菇'。它还含有朴菇素，具有抗肿瘤作用。金针菇口感脆嫩，适合多种烹饪方式，是火锅、炒菜、汤品的常见食材。现代栽培技术使其成为价格亲民、四季可得的健康食品。",
+                warning: "金针菇必须彻底煮熟后食用，生食可能引起肠胃不适。由于其菌柄细长，容易堵塞肠道，食用时应充分咀嚼，儿童和老人更需注意。",
+                category: ["edible", "cultivated", "common"],
+                uses: ["食用", "保健"],
+                characteristics: "菌盖小巧，直径1-3厘米，颜色白色至淡黄色，菌褶白色，菌柄细长，长5-15厘米，上部淡黄色，下部深褐色有绒毛",
+                icon: "🍄",
+                nutritionalValue: "富含蛋白质、氨基酸、维生素B1、B2、钾、磷，特别是赖氨酸和精氨酸",
+                healthBenefits: "增强免疫力，抗肿瘤，促进儿童智力发育",
+                cookingTip: "烹饪前切除基部硬结，充分煮熟，细嚼慢咽"
+            },
+            {
+                id: 12,
+                name: "口蘑",
+                scientificName: "Tricholoma mongolicum",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "草原、牧场，与牧草形成菌根关系",
+                season: "夏季至秋季（7-10月）",
+                distribution: "亚洲草原地区，主要分布在中国内蒙古、河北等地",
+                description: "口蘑是中国北方草原地区著名的野生食用菌，因其肉质肥厚、味道鲜美而备受青睐。菌盖直径5-15厘米，初为半球形后平展，表面白色至淡黄色，光滑或有细鳞。菌肉白色，厚实。口蘑富含蛋白质、多种氨基酸和矿物质，特别是硒含量较高，具有抗氧化作用。传统上，口蘑是蒙古族牧民的重要食材，常用于炖汤、炒菜。由于过度采摘和草原退化，野生口蘑资源日益减少，现已尝试人工栽培但尚未大规模推广。",
+                warning: "口蘑是安全的可食用菌，但采摘野生口蘑需注意与有毒的白色蘑菇区分。购买时选择新鲜、无虫蛀、无异味的产品。对蘑菇过敏的人群应谨慎食用。",
+                category: ["edible", "wild", "grassland"],
+                uses: ["食用", "药用"],
+                characteristics: "菌盖白色至淡黄色，直径5-15厘米，表面光滑或有细鳞，菌肉白色厚实，菌褶白色，菌柄粗壮，基部稍膨大",
+                icon: "🍄",
+                habitatNote: "草原特有的蘑菇，与牧草形成共生关系",
+                nutritionalValue: "富含蛋白质、氨基酸、维生素、矿物质，特别是硒",
+                conservation: "由于过度采摘和草原退化，野生资源减少，需合理利用"
+            },
+            {
+                id: 13,
+                name: "牛肝菌",
+                scientificName: "Boletus edulis",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "针叶林和阔叶林，与松树、栎树等形成菌根关系",
+                season: "夏秋季（6-10月）",
+                distribution: "北半球温带地区，欧洲、北美、亚洲",
+                description: "牛肝菌是一大类肉质厚实的食用菌的统称，这里特指美味牛肝菌（Boletus edulis），被誉为'牛肝菌之王'。菌盖直径8-25厘米，半球形后平展，表面褐色，光滑或微粘。牛肝菌的最大特征是没有菌褶，而是菌管层（海绵状），幼时白色，成熟后黄绿色。菌肉白色，厚实，受伤不变色。味道鲜美，有坚果风味，是欧洲菜肴中的高级食材，特别是意大利和法国料理。牛肝菌富含蛋白质、多种氨基酸、维生素和矿物质，干品的香气更加浓郁。",
+                warning: "牛肝菌种类繁多，有些有毒（如红网牛肝菌），需由专家识别。美味牛肝菌菌管层白色至黄绿色，受伤不变色；有毒的牛肝菌菌管层常为红色或橙色，受伤变蓝。确保采集可食用种类。",
+                category: ["edible", "common", "wild"],
+                uses: ["高级食材", "干制"],
+                characteristics: "菌盖褐色，直径8-25厘米，表面光滑或微粘，菌肉白色厚实，菌管层海绵状，幼时白色后黄绿色，菌柄粗壮，有网状纹",
+                icon: "🍄",
+                identification: "没有菌褶而是菌管层，受伤不变色，菌柄有网状纹",
+                toxicLookalikes: "红网牛肝菌（有毒，菌管层红色，受伤变蓝）",
+                culinaryUses: "适合煎、炒、炖、汤，干品香气更浓"
+            },
+            {
+                id: 14,
+                name: "平菇",
+                scientificName: "Pleurotus ostreatus",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "阔叶树木的枯木，现多为人工栽培",
+                season: "全年（人工栽培）",
+                distribution: "全球温带地区，现全球人工栽培",
+                description: "平菇是最常见的栽培食用菌之一，因其菌盖扁平如伞而得名。菌盖扇形或贝壳状，直径5-20厘米，颜色从灰色到灰褐色不等。菌褶延生，白色。平菇营养丰富，含有丰富的蛋白质、多糖、维生素和矿物质，特别是平菇多糖具有增强免疫力的作用。它味道鲜美，口感柔软，适合多种烹饪方式，价格亲民，是百姓餐桌上的常客。平菇栽培技术简单，利用农业废弃物（如木屑、秸秆）作为培养基，具有很好的经济和生态效益。",
+                warning: "平菇是安全可食用的，但必须彻底煮熟。购买时选择新鲜、无霉变、菌盖完整的产品。对蘑菇过敏的人群应谨慎食用。",
+                category: ["edible", "cultivated", "common"],
+                uses: ["食用", "保健"],
+                characteristics: "菌盖扇形或贝壳状，直径5-20厘米，颜色灰色至灰褐色，菌褶延生，白色，菌柄侧生或无柄",
+                icon: "🍄",
+                cultivation: "易于栽培，利用木屑、秸秆等农业废弃物",
+                nutritionalValue: "富含蛋白质、多糖、维生素B族、维生素D、钾、硒",
+                healthBenefits: "增强免疫力，降低胆固醇，抗氧化"
+            },
+            {
+                id: 15,
+                name: "乳菇",
+                scientificName: "Lactarius deliciosus",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "松树林，与松树形成菌根关系",
+                season: "夏季至秋季（7-10月）",
+                distribution: "北半球温带地区，欧洲、北美、亚洲",
+                description: "乳菇是一大类蘑菇的统称，这里特指松乳菇（Lactarius deliciosus），因其受伤时会流出橙色乳汁而得名。菌盖直径5-15厘米，初为半球形后平展，中央凹陷，颜色橙色至胡萝卜色，有同心环纹。菌肉橙色，受伤后流出胡萝卜色乳汁，随后逐渐变绿。乳菇味道鲜美，在欧洲和亚洲都很受欢迎，特别是在西班牙和俄罗斯。它含有丰富的蛋白质、维生素和矿物质，但需彻底煮熟以破坏可能引起肠胃不适的物质。",
+                warning: "乳菇必须彻底煮熟后食用，生食可能引起肠胃不适。采摘时注意与有毒乳菇区分，有毒乳菇的乳汁通常为白色且味道极辣。",
+                category: ["edible", "wild", "milky"],
+                uses: ["食用", "腌制"],
+                characteristics: "菌盖橙色至胡萝卜色，直径5-15厘米，有同心环纹，中央凹陷，菌肉橙色，受伤后流出胡萝卜色乳汁并逐渐变绿，菌褶延生",
+                icon: "🍄",
+                uniqueFeature: "受伤时流出橙色乳汁，随后变绿",
+                taste: "鲜美，略带辛辣",
+                cookingRequirement: "必须彻底煮熟，或腌制后食用"
+            },
+            {
+                id: 16,
+                name: "香菇",
+                scientificName: "Lentinula edodes",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "阔叶树木的枯木，现多为人工栽培",
+                season: "全年（人工栽培）",
+                distribution: "原产亚洲，现全球人工栽培",
+                description: "香菇是世界上第二大宗栽培食用菌（仅次于双孢蘑菇），在亚洲已有1000多年的栽培历史。菌盖直径5-15厘米，半球形后平展，表面褐色，有鳞片。香菇具有独特的香味，主要来自香菇精（lenthionine），这种物质在干燥过程中更加浓郁，因此干香菇比鲜香菇更香。香菇营养丰富，含有丰富的蛋白质、多糖、维生素和矿物质，特别是香菇多糖具有显著的增强免疫力、抗肿瘤作用。在传统中医中，香菇用于补气、健脾。",
+                warning: "香菇是安全可食用的，但有些人可能对香菇过敏。鲜香菇含有麦角固醇，在阳光下可转化为维生素D，但过量摄入可能引起维生素D中毒。",
+                category: ["edible", "cultivated", "common"],
+                uses: ["食用", "药用", "干制"],
+                characteristics: "菌盖褐色，直径5-15厘米，表面有鳞片，菌肉白色，菌褶白色，菌柄中生或偏生",
+                icon: "🍄",
+                aroma: "独特的香味，干品更浓",
+                activeCompounds: "香菇多糖、香菇精、麦角固醇",
+                healthBenefits: "增强免疫力，抗肿瘤，降低胆固醇，抗病毒"
+            },
+            {
+                id: 17,
+                name: "小皮伞",
+                scientificName: "Marasmius oreades",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "草地、草坪、牧场，形成蘑菇圈（仙女环）",
+                season: "夏季至秋季（6-10月）",
+                distribution: "全球温带地区",
+                description: "小皮伞是一种小型食用菌，因其菌盖坚韧如皮革而得名。菌盖直径2-5厘米，初为半球形后平展，中央有凸起，颜色淡褐色至皮革色。菌柄细长，坚韧。小皮伞最有趣的现象是形成蘑菇圈（仙女环）——蘑菇排列成圆圈生长，直径可达数米甚至数十米。这是由于菌丝体从中心向外辐射生长所致。小皮伞味道温和，有淡淡的杏仁香味，适合炒食或做汤。它含有马鞍菌酸，具有抗凝血作用。",
+                warning: "小皮伞可食用，但采摘时需注意与有毒的相似种类区分，特别是丝盖伞属的剧毒蘑菇。非专业人士最好不要采摘草地上的白色或淡色小型蘑菇。",
+                category: ["edible", "wild", "fairyRing"],
+                uses: ["食用", "研究用途"],
+                characteristics: "菌盖淡褐色至皮革色，直径2-5厘米，中央凸起，菌肉薄，菌褶离生，菌柄细长，坚韧",
+                icon: "🍄",
+                fairyRing: "常形成蘑菇圈（仙女环），直径可达数十米",
+                flavor: "温和，有淡淡的杏仁香味",
+                activeCompound: "马鞍菌酸（抗凝血作用）"
+            },
+            {
+                id: 18,
+                name: "杏鲍菇",
+                scientificName: "Pleurotus eryngii",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "植物根部（自然生长），现多为人工栽培",
+                season: "全年（人工栽培）",
+                distribution: "原产欧洲南部、中亚，现全球人工栽培",
+                description: "杏鲍菇是一种肉质厚实的食用菌，因其具有杏仁香味和鲍鱼般的口感而得名。菌盖直径5-15厘米，初为半球形后平展，表面灰色至黄褐色。菌柄粗壮，基部膨大，肉质结实。杏鲍菇营养丰富，含有丰富的蛋白质、多糖、维生素和矿物质，特别是富含膳食纤维，有助于肠道健康。它味道鲜美，口感独特，可烹制出多种菜肴，有'素中牛排'的美誉。杏鲍菇栽培技术成熟，是目前市场上主要的栽培菌种之一。",
+                warning: "杏鲍菇是安全可食用的，但必须彻底煮熟。购买时选择新鲜、菌盖完整、菌柄结实的产品。对蘑菇过敏的人群应谨慎食用。",
+                category: ["edible", "cultivated", "common"],
+                uses: ["食用", "保健"],
+                characteristics: "菌盖灰色至黄褐色，直径5-15厘米，菌肉白色厚实，菌褶延生，菌柄粗壮，基部膨大，肉质结实",
+                icon: "🍄",
+                texture: "肉质结实，口感类似鲍鱼",
+                flavor: "鲜美，有杏仁香味",
+                nutritionalValue: "富含蛋白质、多糖、膳食纤维、维生素B族、钾、磷"
+            },
+            {
+                id: 19,
+                name: "竹荪",
+                scientificName: "Phallus indusiatus",
+                edibility: "edible",
+                edibilityText: "可食用",
+                habitat: "竹林、阔叶林，生长在富含腐殖质的土壤",
+                season: "夏秋季（6-9月）",
+                distribution: "亚洲、非洲、美洲的热带和亚热带地区",
+                description: "竹荪是一种形态奇特的珍贵食用菌，被称为'菌中皇后'。其子实体由菌盖、菌柄和菌裙组成：菌盖钟形，表面有黏液状孢子层；菌柄白色，海绵质；最特别的是菌裙——从菌盖下垂的白色网状结构，优美如裙。竹荪味道鲜美，口感脆嫩，是高级宴席的名贵食材。它富含蛋白质、多种氨基酸、维生素和矿物质，具有滋补强壮、润肺止咳的功效。竹荪的孢子层有臭味，以吸引昆虫传播孢子，因此采摘后需去除菌盖和黏液。",
+                warning: "竹荪必须彻底煮熟后食用。采摘时需去除有臭味的菌盖和黏液。市场上偶有假冒产品，请选择信誉良好的商家。",
+                category: ["edible", "rare", "exotic"],
+                uses: ["高级食材", "药用"],
+                characteristics: "菌盖钟形，有恶臭的黏液状孢子层，菌柄白色海绵质，菌裙白色网状从菌盖下垂，长10-20厘米",
+                icon: "🍄",
+                uniqueFeature: "有优美的白色网状菌裙",
+                smell: "菌盖有恶臭以吸引昆虫，去除后无味",
+                culinaryUses: "适合炖汤，口感脆嫩，味道鲜美"
+            },
+            {
+                id: 20,
+                name: "毒鹅膏",
+                scientificName: "Amanita phalloides",
+                edibility: "poisonous",
+                edibilityText: "剧毒",
+                habitat: "阔叶林，特别是橡树林和榉树林",
+                season: "夏秋季（7-10月）",
+                distribution: "欧洲、北美、澳洲（引入）",
+                description: "毒鹅膏是世界上最毒的蘑菇，被称为'死亡帽'，全球90%以上的蘑菇中毒死亡事件由其引起。菌盖直径5-15厘米，颜色从橄榄绿到黄绿色，表面光滑。菌柄白色，有膜质菌环，基部有袋状菌托。毒鹅膏含有鹅膏毒素，特别是α-鹅膏蕈碱，这种毒素对肝脏有极强的破坏作用，且耐高温、耐干燥，烹饪无法破坏。中毒症状有潜伏期（6-24小时），初期类似胃肠炎，随后出现'假愈期'，最后肝功能衰竭导致死亡。即使及时就医并使用解毒剂，死亡率仍高达10-30%。",
+                warning: "毒鹅膏是剧毒蘑菇，即使少量食用（半个菌盖）也可能致命。它的外观与可食用的草菇相似，极易误食。绝对不要采摘或食用任何野生蘑菇，除非您是专业真菌学家。",
+                category: ["poisonous", "deadly"],
+                uses: ["无", "研究用途"],
+                characteristics: "菌盖橄榄绿至黄绿色，直径5-15厘米，表面光滑，菌褶白色，离生，菌柄白色，有膜质菌环，基部有袋状菌托",
+                icon: "☠️",
+                toxins: "鹅膏毒素（α-鹅膏蕈碱等）",
+                symptoms: "潜伏期6-24小时，初期恶心呕吐腹痛腹泻，假愈期1-2天，随后肝功能衰竭、昏迷、死亡",
+                mortalityRate: "10-30%，即使及时治疗"
+            }
+        ];
+
+        // DOM元素
+        const mushroomGallery = document.getElementById('mushroomGallery');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const detailModal = document.getElementById('detailModal');
+        const closeDetailModal = document.getElementById('closeDetailModal');
+        const detailContent = document.getElementById('detailContent');
+        
+        // 筛选器元素
+        const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const selectedTagsContainer = document.getElementById('selectedTags');
+        
+        // 统计元素
+        const totalMushrooms = document.getElementById('totalMushrooms');
+        const edibleCount = document.getElementById('edibleCount');
+        const toxicCount = document.getElementById('toxicCount');
+        const medicinalCount = document.getElementById('medicinalCount');
+        
+        // 当前过滤状态
+        let currentFilters = {
+            edibility: [], // 可食用性
+            category: []   // 其他 category 标签（common, rare, wild, cultivated, symbiotic 等）
+        };
+        let currentSearch = '';
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 显示加载动画
+            loading.style.display = 'block';
+            
+            // 模拟数据加载延迟
+            setTimeout(() => {
+                // 更新统计数据
+                updateStats();
+                
+                // 生成蘑菇图库
+                generateMushroomGallery();
+                
+                // 更新已选标签显示
+                updateSelectedTags();
+                
+                // 隐藏加载动画
+                loading.style.display = 'none';
+            }, 800);
+            
+            // 绑定搜索事件
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // 绑定筛选器事件
+            filterCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const value = this.value;
+                    const group = this.id.split('-')[0]; // 通过 id 前缀区分组，如 edible-filter 的前缀是 edible
+                    
+                    // 根据分组更新 currentFilters
+                    if (group === 'edible' || group === 'toxic' || group === 'poisonous' || group === 'medicinal') {
+                        // 可食用性组，使用 edibility 数组
+                        if (this.checked) {
+                            if (!currentFilters.edibility.includes(value)) {
+                                currentFilters.edibility.push(value);
+                            }
+                        } else {
+                            currentFilters.edibility = currentFilters.edibility.filter(v => v !== value);
+                        }
+                    } else {
+                        // 其他组（common, rare, wild, cultivated, symbiotic），使用 category 数组
+                        if (this.checked) {
+                            if (!currentFilters.category.includes(value)) {
+                                currentFilters.category.push(value);
+                            }
+                        } else {
+                            currentFilters.category = currentFilters.category.filter(v => v !== value);
+                        }
+                    }
+                    
+                    // 更新已选标签显示
+                    updateSelectedTags();
+                    
+                    // 重新筛选蘑菇
+                    filterMushrooms();
+                });
+            });
+            
+            // 绑定清除筛选按钮事件
+            clearFiltersBtn.addEventListener('click', function() {
+                // 清除所有复选框的选中状态
+                filterCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // 清空筛选器数组
+                currentFilters = {
+                    edibility: [],
+                    category: []
+                };
+                
+                // 更新已选标签显示
+                updateSelectedTags();
+                
+                // 重新筛选蘑菇
+                filterMushrooms();
+            });
+            
+            // 绑定模态框关闭事件
+            closeDetailModal.addEventListener('click', () => {
+                detailModal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target === detailModal) {
+                    detailModal.style.display = 'none';
+                }
+            });
+        });
+        
+        // 更新已选标签显示
+        function updateSelectedTags() {
+            selectedTagsContainer.innerHTML = '';
+            
+            // 合并所有筛选器
+            const allFilters = [
+                ...currentFilters.edibility.map(v => {
+                    // 将值转换为显示文本
+                    switch(v) {
+                        case 'edible': return '可食用';
+                        case 'toxic': return '有毒';
+                        case 'poisonous': return '剧毒';
+                        case 'medicinal': return '药用';
+                        default: return v;
+                    }
+                }),
+                ...currentFilters.category.map(v => {
+                    switch(v) {
+                        case 'common': return '常见';
+                        case 'rare': return '稀有';
+                        case 'wild': return '野生';
+                        case 'cultivated': return '栽培';
+                        case 'symbiotic': return '共生';
+                        default: return v;
+                    }
+                })
+            ];
+            
+            if (allFilters.length === 0) {
+                selectedTagsContainer.innerHTML = `
+                    <div class="selected-tag" style="background-color: #f1f8e9; color: #2d4a3a;">
+                        无筛选条件
+                    </div>
+                `;
+                return;
+            }
+            
+            // 为每个已选标签创建一个元素
+            allFilters.forEach(filter => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'selected-tag';
+                
+                // 根据类型设置不同颜色
+                let bgColor = '#4CAF50'; // 默认绿色
+                if (filter === '可食用' || filter === '常见' || filter === '野生' || filter === '栽培' || filter === '共生') {
+                    bgColor = '#4CAF50';
+                } else if (filter === '有毒' || filter === '剧毒') {
+                    bgColor = '#f44336';
+                } else if (filter === '药用' || filter === '稀有') {
+                    bgColor = '#FF9800';
+                }
+                
+                tagElement.style.backgroundColor = bgColor;
+                
+                tagElement.innerHTML = `
+                    ${filter}
+                    <button class="remove-tag" data-filter="${filter}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                selectedTagsContainer.appendChild(tagElement);
+            });
+            
+            // 为移除按钮添加事件
+            const removeButtons = document.querySelectorAll('.remove-tag');
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterText = this.getAttribute('data-filter');
+                    let filterValue = filterText;
+                    
+                    // 将显示文本转换回实际值
+                    switch(filterText) {
+                        case '可食用': filterValue = 'edible'; break;
+                        case '有毒': filterValue = 'toxic'; break;
+                        case '剧毒': filterValue = 'poisonous'; break;
+                        case '药用': filterValue = 'medicinal'; break;
+                        case '常见': filterValue = 'common'; break;
+                        case '稀有': filterValue = 'rare'; break;
+                        case '野生': filterValue = 'wild'; break;
+                        case '栽培': filterValue = 'cultivated'; break;
+                        case '共生': filterValue = 'symbiotic'; break;
+                    }
+                    
+                    // 从对应数组中移除
+                    if (['edible', 'toxic', 'poisonous', 'medicinal'].includes(filterValue)) {
+                        currentFilters.edibility = currentFilters.edibility.filter(v => v !== filterValue);
+                    } else {
+                        currentFilters.category = currentFilters.category.filter(v => v !== filterValue);
+                    }
+                    
+                    // 找到对应的复选框并取消选中
+                    const checkbox = Array.from(filterCheckboxes).find(cb => cb.value === filterValue);
+                    if (checkbox) checkbox.checked = false;
+                    
+                    // 更新显示和重新筛选
+                    updateSelectedTags();
+                    filterMushrooms();
+                });
+            });
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            const total = mushroomDatabase.length;
+            const edible = mushroomDatabase.filter(m => m.edibility === 'edible').length;
+            const toxic = mushroomDatabase.filter(m => m.edibility === 'toxic' || m.edibility === 'poisonous').length;
+            const medicinal = mushroomDatabase.filter(m => m.edibility === 'medicinal').length;
+            
+            // 动画显示统计数据
+            animateCount(totalMushrooms, total);
+            animateCount(edibleCount, edible);
+            animateCount(toxicCount, toxic);
+            animateCount(medicinalCount, medicinal);
+        }
+        
+        // 数字动画
+        function animateCount(element, target) {
+            let current = 0;
+            const increment = target / 50; // 分50步完成
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current);
+            }, 20);
+        }
+        
+        // 生成蘑菇图库
+        function generateMushroomGallery() {
+            mushroomGallery.innerHTML = '';
+            
+            const filteredMushrooms = filterMushroomList();
+            
+            if (filteredMushrooms.length === 0) {
+                mushroomGallery.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; color: #FF9800;"></i>
+                        <h3>未找到匹配的蘑菇</h3>
+                        <p>请尝试其他搜索词或筛选条件</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredMushrooms.forEach(mushroom => {
+                const mushroomItem = document.createElement('div');
+                mushroomItem.className = 'mushroom-item';
+                
+                // 设置可食用性标签颜色
+                let edibilityClass = '';
+                if (mushroom.edibility === 'edible') {
+                    edibilityClass = 'edible';
+                } else if (mushroom.edibility === 'toxic' || mushroom.edibility === 'poisonous') {
+                    edibilityClass = 'toxic';
+                } else if (mushroom.edibility === 'medicinal') {
+                    edibilityClass = 'medicinal';
+                } else {
+                    edibilityClass = 'unknown';
+                }
+                
+                // 定义每个蘑菇的本地图片路径
+                let imgPath = '';
+
+                if (mushroom.name === "鸡油菌") {
+                    imgPath = "image/鸡油菌.jpg";
+                } 
+                else if (mushroom.name === "毒蝇伞") {
+                    imgPath = "image/毒蝇伞.jpg";
+                } 
+                else if (mushroom.name === "松茸") {
+                    imgPath = "image/松茸.jpg";
+                }
+                else if (mushroom.name === "灵芝") {
+                    imgPath = "image/灵芝.jpg";
+                }
+                else if (mushroom.name === "羊肚菌") {
+                    imgPath = "image/羊肚菌.jpg";
+                }
+                else if (mushroom.name === "毁灭天使（白毒伞）") {
+                    imgPath = "image/毁灭天使.png";
+                }
+                else if (mushroom.name === "海鲜菇") {
+                    imgPath = "image/海鲜菇.jpg";
+                }
+                else if (mushroom.name === "红菇") {
+                    imgPath = "image/红菇.jpg";
+                }
+                else if (mushroom.name === "猴头菇") {
+                    imgPath = "image/猴头菇.jpg";
+                }
+                else if (mushroom.name === "鸡枞菌") {
+                    imgPath = "image/鸡枞菌.jpg";
+                }
+                else if (mushroom.name === "金针菇") {
+                    imgPath = "image/金针菇.jpg";
+                }
+                else if (mushroom.name === "口蘑") {
+                    imgPath = "image/口蘑.jpg";
+                }
+                else if (mushroom.name === "牛肝菌") {
+                    imgPath = "image/牛肝菌.jpg";
+                }
+                else if (mushroom.name === "平菇") {
+                    imgPath = "image/平菇.jpg";
+                }
+                else if (mushroom.name === "乳菇") {
+                    imgPath = "image/乳菇.jpg";
+                }
+                else if (mushroom.name === "香菇") {
+                    imgPath = "image/香菇.jpg";
+                }
+                else if (mushroom.name === "小皮伞") {
+                    imgPath = "image/小皮伞.jpg";
+                }
+                else if (mushroom.name === "竹荪") {
+                    imgPath = "image/竹荪.jpg";
+                }
+                else if (mushroom.name === "毒鹅膏") {
+                    imgPath = "image/毒鹅膏.png";
+                }
+                else if (mushroom.name === "杏鲍菇") {
+                    imgPath = "image/杏鲍菇.jpg";
+                }
+
+                mushroomItem.innerHTML = `
+                    <div class="mushroom-img">
+                        <img src="${imgPath}" alt="${mushroom.name}">
+                    </div>
+                    <div class="mushroom-info">
+                        <h3>${mushroom.name}</h3>
+                        <p><strong>学名:</strong> ${mushroom.scientificName}</p>
+                        <p><strong>可食用性:</strong> <span class="${edibilityClass}">${mushroom.edibilityText}</span></p>
+                        <p><strong>生长环境:</strong> ${mushroom.habitat}</p>
+                        <p><strong>季节:</strong> ${mushroom.season}</p>
+                        <button class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="showMushroomDetail(${mushroom.id})">
+                            <i class="fas fa-info-circle"></i> 查看详情
+                        </button>
+                    </div>
+                `;
+                
+                mushroomGallery.appendChild(mushroomItem);
+            });
+            
+            // 添加CSS样式
+            const style = document.createElement('style');
+            style.textContent = `
+                .edible { color: #4CAF50; font-weight: bold; }
+                .toxic { color: #f44336; font-weight: bold; }
+                .medicinal { color: #FF9800; font-weight: bold; }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // 过滤蘑菇列表
+        function filterMushroomList() {
+            return mushroomDatabase.filter(mushroom => {
+                // 按搜索词过滤
+                if (currentSearch) {
+                    const searchTerm = currentSearch.toLowerCase();
+                    const nameMatch = mushroom.name.toLowerCase().includes(searchTerm);
+                    const sciMatch = mushroom.scientificName.toLowerCase().includes(searchTerm);
+                    const descMatch = mushroom.description.toLowerCase().includes(searchTerm);
+                    const charMatch = mushroom.characteristics.toLowerCase().includes(searchTerm);
+                    
+                    if (!(nameMatch || sciMatch || descMatch || charMatch)) {
+                        return false;
+                    }
+                }
+                
+                // 按多选筛选器过滤
+                const hasEdibilityFilters = currentFilters.edibility.length > 0;
+                const hasCategoryFilters = currentFilters.category.length > 0;
+                
+                if (!hasEdibilityFilters && !hasCategoryFilters) {
+                    return true;
+                }
+                
+                // 检查可食用性（edibility）筛选：同一组内是“或”关系
+                if (hasEdibilityFilters) {
+                    if (!currentFilters.edibility.includes(mushroom.edibility)) {
+                        return false;
+                    }
+                }
+                
+                // 检查 category 筛选：同一组内是“或”关系，需要与 mushroom.category 数组有交集
+                if (hasCategoryFilters) {
+                    const categoryIntersection = currentFilters.category.filter(cat => mushroom.category.includes(cat));
+                    if (categoryIntersection.length === 0) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+        
+        // 执行过滤
+        function filterMushrooms() {
+            generateMushroomGallery();
+        }
+        
+        // 执行搜索
+        function performSearch() {
+            currentSearch = searchInput.value.trim();
+            filterMushrooms();
+        }
+        
+        // 显示蘑菇详情
+        function showMushroomDetail(id) {
+            const mushroom = mushroomDatabase.find(m => m.id === id);
+
+            if (mushroom) {
+                // 获取图片路径（与卡片逻辑一致）
+                let imgPath = '';
+                switch(mushroom.name) {
+                    case "鸡油菌": imgPath = "image/鸡油菌.jpg"; break;
+                    case "毒蝇伞": imgPath = "image/毒蝇伞.jpg"; break;
+                    case "松茸": imgPath = "image/松茸.jpg"; break;
+                    case "灵芝": imgPath = "image/灵芝.jpg"; break;
+                    case "羊肚菌": imgPath = "image/羊肚菌.jpg"; break;
+                    case "毁灭天使（白毒伞）": imgPath = "image/毁灭天使.png"; break;
+                    case "海鲜菇": imgPath = "image/海鲜菇.jpg"; break;
+                    case "红菇": imgPath = "image/红菇.jpg"; break;
+                    case "猴头菇": imgPath = "image/猴头菇.jpg"; break;
+                    case "鸡枞菌": imgPath = "image/鸡枞菌.jpg"; break;
+                    case "金针菇": imgPath = "image/金针菇.jpg"; break;
+                    case "口蘑": imgPath = "image/口蘑.jpg"; break;
+                    case "牛肝菌": imgPath = "image/牛肝菌.jpg"; break;
+                    case "平菇": imgPath = "image/平菇.jpg"; break;
+                    case "乳菇": imgPath = "image/乳菇.jpg"; break;
+                    case "香菇": imgPath = "image/香菇.jpg"; break;
+                    case "小皮伞": imgPath = "image/小皮伞.jpg"; break;
+                    case "竹荪": imgPath = "image/竹荪.jpg"; break;
+                    case "毒鹅膏": imgPath = "image/毒鹅膏.png"; break;
+                    case "杏鲍菇": imgPath = "image/杏鲍菇.jpg"; break;
+                    default: imgPath = "";
+                }
+
+                // 图片 HTML：有图片路径则显示图片，否则回退到图标
+                const imageHTML = imgPath
+                    ? `<img src="${imgPath}" alt="${mushroom.name}" style="width:100%; height:100%; object-fit:cover;">`
+                    : `<span style="font-size:5rem;">${mushroom.icon}</span>`;
+
+                // 设置可食用性标签类
+                let edibilityClass = '';
+                switch(mushroom.edibility) {
+                    case 'edible': edibilityClass = 'edible'; break;
+                    case 'toxic': edibilityClass = 'toxic'; break;
+                    case 'medicinal': edibilityClass = 'medicinal'; break;
+                    case 'poisonous': edibilityClass = 'poisonous'; break;
+                    default: edibilityClass = 'unknown';
+                }
+
+                // 生成扩展信息（保持原有逻辑）
+                let extraInfoHTML = '';
+                const extraInfoFields = [
+                    { key: 'taste', label: '味道', icon: 'fas fa-utensils' },
+                    { key: 'flavor', label: '风味', icon: 'fas fa-wine-glass-alt' },
+                    { key: 'aroma', label: '香气', icon: 'fas fa-wind' },
+                    { key: 'texture', label: '质地', icon: 'fas fa-hand-paper' },
+                    { key: 'nutritionalValue', label: '营养价值', icon: 'fas fa-apple-alt' },
+                    { key: 'healthBenefits', label: '健康益处', icon: 'fas fa-heartbeat' },
+                    { key: 'cookingTips', label: '烹饪建议', icon: 'fas fa-utensil-spoon' },
+                    { key: 'cookingMethods', label: '烹饪方法', icon: 'fas fa-fire' },
+                    { key: 'culinaryUses', label: '烹饪用途', icon: 'fas fa-mortar-pestle' },
+                    { key: 'activeCompounds', label: '活性成分', icon: 'fas fa-flask' },
+                    { key: 'medicinalUses', label: '药用用途', icon: 'fas fa-pills' },
+                    { key: 'toxins', label: '毒素', icon: 'fas fa-skull-crossbones' },
+                    { key: 'symptoms', label: '中毒症状', icon: 'fas fa-exclamation-triangle' },
+                    { key: 'mortalityRate', label: '死亡率', icon: 'fas fa-skull' },
+                    { key: 'marketValue', label: '市场价值', icon: 'fas fa-tags' },
+                    { key: 'price', label: '价格', icon: 'fas fa-money-bill-wave' },
+                    { key: 'identificationTip', label: '识别提示', icon: 'fas fa-search' },
+                    { key: 'uniqueFeature', label: '独特特征', icon: 'fas fa-star' },
+                    { key: 'cultivation', label: '栽培情况', icon: 'fas fa-seedling' },
+                    { key: 'symbiosis', label: '共生关系', icon: 'fas fa-hands-helping' },
+                    { key: 'rarity', label: '稀有程度', icon: 'fas fa-gem' },
+                    { key: 'fairyRing', label: '蘑菇圈现象', icon: 'fas fa-magic' },
+                    { key: 'smell', label: '气味', icon: 'fas fa-smell' },
+                    { key: 'interestingFact', label: '有趣事实', icon: 'fas fa-lightbulb' },
+                    { key: 'note', label: '备注', icon: 'fas fa-sticky-note' }
+                ];
+
+                const availableFields = extraInfoFields.filter(field => mushroom[field.key]);
+                if (availableFields.length > 0) {
+                    extraInfoHTML = `
+                    <div class="detail-section">
+                        <h4><i class="fas fa-info-circle"></i> 扩展信息</h4>
+                        <div class="extra-info-grid">
+                    `;
+                    availableFields.forEach(field => {
+                        extraInfoHTML += `
+                            <div class="extra-info-item">
+                                <h6><i class="${field.icon}"></i> ${field.label}</h6>
+                                <p>${mushroom[field.key]}</p>
+                            </div>
+                        `;
+                    });
+                    extraInfoHTML += `
+                        </div>
+                    </div>
+                    `;
+                }
+
+                // 生成蘑菇详情HTML
+                detailContent.innerHTML = `
+                    <h3>${mushroom.name}</h3>
+                    <div class="mushroom-detail-img">
+                        ${imageHTML}
+                    </div>
+
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <h5><i class="fas fa-leaf"></i> 学名</h5>
+                            <p>${mushroom.scientificName}</p>
+                        </div>
+                        <div class="detail-item">
+                            <h5><i class="fas fa-utensils"></i> 可食用性</h5>
+                            <p><span class="edibility-tag ${edibilityClass}" style="font-size: 1rem;">${mushroom.edibilityText}</span></p>
+                        </div>
+                        <div class="detail-item">
+                            <h5><i class="fas fa-tree"></i> 生长环境</h5>
+                            <p>${mushroom.habitat}</p>
+                        </div>
+                        <div class="detail-item">
+                            <h5><i class="far fa-calendar-alt"></i> 季节</h5>
+                            <p>${mushroom.season}</p>
+                        </div>
+                        <div class="detail-item">
+                            <h5><i class="fas fa-globe-asia"></i> 分布区域</h5>
+                            <p>${mushroom.distribution}</p>
+                        </div>
+                        <div class="detail-item">
+                            <h5><i class="fas fa-tags"></i> 用途</h5>
+                            <p>${mushroom.uses.join('、')}</p>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4><i class="fas fa-align-left"></i> 描述</h4>
+                        <p>${mushroom.description}</p>
+                    </div>
+
+                    ${extraInfoHTML}
+
+                    <div class="detail-section">
+                        <h4><i class="fas fa-search"></i> 识别特征</h4>
+                        <p>${mushroom.characteristics}</p>
+                    </div>
+
+                    <div class="warning-box">
+                        <h4><i class="fas fa-exclamation-triangle"></i> 安全警告</h4>
+                        <p>${mushroom.warning}</p>
+                    </div>
+
+                    <button class="search-btn" style="margin-top: 25px;" onclick="detailModal.style.display='none'">
+                        <i class="fas fa-times"></i> 关闭
+                    </button>
+                `;
+
+                detailModal.style.display = 'flex';
+            }
+        }
+    </script>
+</body>
+</html>

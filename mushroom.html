@@ -1,0 +1,2767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蘑法识界——基于tensorflow的蘑菇识别器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 所有样式保持不变，与之前相同 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f7f4;
+            background-image: linear-gradient(to bottom right, #e9f5eb, #d4ede1);
+            color: #2d4a3a;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .mushroom-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="30" r="25" fill="%234CAF50"/><ellipse cx="50" cy="70" rx="30" ry="20" fill="%23FF9800"/></svg>');
+            background-size: 120px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 头部和登录按钮区域 */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 3.5rem;
+            color: #FF9800;
+            filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.4));
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            background: linear-gradient(to right, #FF9800, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #4CAF50;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        /* 登录注册按钮 */
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .auth-btn {
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+        }
+
+        .auth-btn-secondary {
+            background: linear-gradient(to right, #FF9800, #FFB74D);
+        }
+
+        .auth-btn-secondary:hover {
+            box-shadow: 0 6px 18px rgba(255, 152, 0, 0.4);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        h2 {
+            color: #FF9800;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 i {
+            font-size: 1.6rem;
+        }
+
+        /* 蘑法识界部分标题 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .learn-more-btn {
+            background: linear-gradient(to right, #FF9800, #FFB74D);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 3px 10px rgba(255, 152, 0, 0.2);
+            text-decoration: none;
+        }
+
+        .learn-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 3px dashed #8BC34A;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background-color: rgba(139, 195, 74, 0.05);
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            background-color: rgba(139, 195, 74, 0.15);
+            border-color: #FF9800;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2d4a3a;
+        }
+
+        .upload-subtext {
+            color: #4CAF50;
+            font-size: 0.9rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #FF9800, #FFB74D);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* 预览区域 */
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 结果区域 */
+        .result-area {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f9fdf7;
+            border-radius: 15px;
+            border-left: 5px solid #FF9800;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .mushroom-name {
+            font-size: 2rem;
+            color: #FF9800;
+            font-weight: bold;
+        }
+
+        .confidence {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+        }
+
+        .mushroom-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .detail-item h4 {
+            color: #4CAF50;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        /* 蘑菇图库 */
+        .mushroom-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .mushroom-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+        }
+
+        .mushroom-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .mushroom-img {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background-color: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mushroom-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ✅ 已修复：按钮统一在同一水平线 */
+        .mushroom-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 260px;
+        }
+
+        .mushroom-info h3 {
+            color: #FF9800;
+            margin-bottom: 10px;
+        }
+
+        /* 蘑法厨房 - 食谱区域 */
+        .recipe-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .filter-btn {
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            padding: 8px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .recipe-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .recipe-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+        }
+
+        .recipe-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .recipe-img {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background-color: #ffecb3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .recipe-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .recipe-info {
+            padding: 25px;
+        }
+
+        .recipe-info h3 {
+            color: #FF9800;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .recipe-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .recipe-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .recipe-description {
+            margin-bottom: 20px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .recipe-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .recipe-tag {
+            background-color: #e8f5e9;
+            color: #2d4a3a;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+
+        .view-recipe-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* 功能特点 */
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #FF9800;
+            min-width: 50px;
+        }
+
+        .warning {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 5px solid #FF9800;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            color: #4CAF50;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(139, 195, 74, 0.3);
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        /* 登录/注册模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #FF9800;
+        }
+
+        .modal h3 {
+            color: #FF9800;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d4a3a;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .forgot-password {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .modal-footer a {
+            color: #4CAF50;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .modal-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .form-switch {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+        }
+
+        .form-switch a {
+            color: #4CAF50;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .form-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* 用户信息显示 */
+        .user-info {
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d4a3a;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #FF9800;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .logo-icon {
+                font-size: 2.8rem;
+            }
+
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .auth-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .mushroom-details {
+                grid-template-columns: 1fr;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .recipe-gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .recipe-filters {
+                justify-content: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(139, 195, 74, 0.3);
+            border-radius: 50%;
+            border-top-color: #FF9800;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 漂浮蘑菇动画 */
+        .fungus-animation {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            opacity: 0.3;
+            z-index: -1;
+            font-size: 2rem;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        /* 食谱详情模态框 */
+        .recipe-modal-content {
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .recipe-detail-img {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background-color: #ffecb3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .recipe-detail-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .recipe-detail-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .recipe-detail-meta div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .recipe-section {
+            margin-bottom: 25px;
+        }
+
+        .recipe-section h4 {
+            color: #FF9800;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ingredients-list, .steps-list {
+            padding-left: 20px;
+        }
+
+        .ingredients-list li, .steps-list li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .steps-list li {
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background-color: #FF9800;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .tips {
+            background-color: rgba(76, 175, 80, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+            margin-top: 20px;
+        }
+        /* 历史记录模块样式 */
+        .history-section {
+            margin-top: 20px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .history-header h3 {
+            color: #FF9800;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .clear-history-btn {
+            background: none;
+            border: 1px solid #ddd;
+            color: #888;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .clear-history-btn:hover {
+            background-color: #ffebee;
+            border-color: #f44336;
+            color: #f44336;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            background: #f9fdf7;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background: #eef7ea;
+            transform: translateX(3px);
+        }
+
+        .history-thumb {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #e8f5e9;
+            flex-shrink: 0;
+        }
+
+        .history-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-name {
+            font-weight: 600;
+            color: #2d4a3a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-confidence {
+            font-size: 0.8rem;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .history-time {
+            font-size: 0.75rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .history-empty i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .video-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        #videoElement {
+            border: 3px solid #8BC34A;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="mushroom-bg"></div>
+
+    <!-- 漂浮的蘑菇动画 -->
+    <div class="fungus-animation" style="top:10%; left:5%; animation: float 6s ease-in-out infinite;">🍄</div>
+    <div class="fungus-animation" style="top:20%; right:8%; animation: float 8s ease-in-out infinite 1s;">🍄</div>
+    <div class="fungus-animation" style="bottom:30%; left:8%; animation: float 7s ease-in-out infinite 0.5s;">🍄</div>
+    <div class="fungus-animation" style="top:60%; right:5%; animation: float 9s ease-in-out infinite 0.2s;">🍳</div>
+
+    <div class="container">
+        <!-- 头部区域 -->
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-hat-wizard logo-icon"></i>
+                    <h1>蘑法识界</h1>
+                </div>
+                <p class="tagline">探索真菌世界的魔法，识别蘑菇种类，解锁自然奥秘</p>
+            </div>
+
+            <!-- 登录/注册按钮区域 -->
+            <div class="auth-section">
+                <div class="auth-buttons" id="authButtons">
+                    <button class="auth-btn" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </button>
+                    <button class="auth-btn auth-btn-secondary" id="registerBtn">
+                        <i class="fas fa-user-plus"></i> 注册
+                    </button>
+                </div>
+
+                <!-- 用户信息显示（登录后显示） -->
+                <div class="user-info" id="userInfo">
+                    <div class="user-avatar" id="userAvatar">M</div>
+                    <div>
+                        <div class="user-name" id="userName">蘑法用户</div>
+                        <button class="logout-btn" id="logoutBtn">退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主界面区域 -->
+        <main class="main-content">
+            <!-- 识别区域 -->
+            <section class="card">
+                <h2><i class="fas fa-camera"></i> 蘑法识别器</h2>
+                <p>上传蘑菇图片，我们的蘑法识别系统将帮助您识别蘑菇种类，并提供详细信息。</p>
+
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="upload-text">点击或拖放图片到此处</p>
+                    <p class="upload-subtext">支持 JPG、PNG 格式，最大 5MB</p>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+
+                <div class="controls">
+                    <button class="btn" id="uploadBtn">
+                        <i class="fas fa-upload"></i> 选择图片
+                    </button>
+                    <button class="btn btn-secondary" id="realtimeBtn">
+                        <i class="fas fa-video"></i> 实时识别
+                    </button>
+                </div>
+
+                <!-- 预览区域 -->
+                <div class="preview-area" id="previewArea">
+                    <img id="imagePreview" src="" alt="预览图片">
+                    <button class="btn" id="identifyBtn">
+                        <i class="fas fa-search"></i> 开始识别
+                    </button>
+                </div>
+
+                <!-- 实时识别视频区域 -->
+                <div class="video-container" id="videoContainer" style="display: none;">
+                    <video id="videoElement" autoplay playsinline style="width: 100%; max-width: 400px; border-radius: 15px;"></video>
+                    <canvas id="videoCanvas" style="display: none;"></canvas>
+                    <div class="video-controls" style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn" id="captureBtn">
+                            <i class="fas fa-camera"></i> 拍照识别
+                        </button>
+                        <button class="btn btn-secondary" id="stopRealtimeBtn">
+                            <i class="fas fa-stop"></i> 关闭摄像头
+                        </button>
+                    </div>
+                    <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
+                        <i class="fas fa-info-circle"></i> 对准蘑菇，点击拍照识别
+                    </p>
+                </div>
+
+                <!-- 加载动画 -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>蘑法识别中... 正在分析图片特征</p>
+                </div>
+
+                <!-- 识别结果 -->
+                <div class="result-area" id="resultArea">
+                    <div class="result-header">
+                        <div class="mushroom-name" id="mushroomName">鸡油菌</div>
+                        <div class="confidence" id="confidence">92% 匹配度</div>
+                    </div>
+                    <p id="mushroomDescription">鸡油菌是一种可食用的美味蘑菇，具有杏子般的香味和胡椒味。通常生长在夏秋季的针叶林和阔叶林中。</p>
+
+                    <div class="mushroom-details">
+                        <div class="detail-item">
+                            <h4>🍄 可食用性</h4>
+                            <p id="edibility">可食用</p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>🌿 生长环境</h4>
+                            <p id="habitat">针叶林和阔叶林</p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>📅 季节</h4>
+                            <p id="season">夏季至秋季</p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>📍 分布区域</h4>
+                            <p id="distribution">北半球温带地区</p>
+                        </div>
+                    </div>
+
+                    <div class="warning">
+                        <h4><i class="fas fa-exclamation-triangle"></i> 安全警告</h4>
+                        <p id="warningText">虽然鸡油菌是可食用的，但蘑菇识别存在风险。在食用任何野生蘑菇之前，请务必由专家确认。有些有毒蘑菇与可食用蘑菇非常相似。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 识别历史（仅登录用户可见） -->
+            <section class="card history-card" id="historyCard" style="display: none;">
+                <div class="history-header">
+                    <h3><i class="fas fa-history"></i> 我的识别历史</h3>
+                    <button class="clear-history-btn" id="clearHistoryBtn">
+                        <i class="fas fa-trash-alt"></i> 清空历史
+                    </button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">
+                        <i class="fas fa-camera-retro"></i>
+                        <p>暂无识别记录，快去识别蘑菇吧！</p>
+                    </div>
+                </div>
+            </section>
+            <!-- 蘑法知识库 -->
+            <section class="card">
+                <div class="section-header">
+                    <h2><i class="fas fa-book"></i> 蘑法知识库</h2>
+                    <a href="knowledge-base.html" class="learn-more-btn" id="learnMoreBtn">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <p>了解常见蘑菇种类及其特征</p>
+
+                <div class="mushroom-gallery">
+                    <!-- 蘑菇项目将通过JavaScript动态生成 -->
+                </div>
+            </section>
+
+            <!-- 蘑法厨房 -->
+            <section class="card">
+                <div class="section-header">
+                    <h2><i class="fas fa-utensils"></i> 蘑法厨房</h2>
+                    <a href="mushroom-kitchen.html" class="learn-more-btn">
+                        了解更多 <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <p>探索美味的蘑菇食谱，将您的蘑菇变成美食！</p>
+
+                <div class="recipe-filters">
+                    <button class="filter-btn active" data-filter="all">全部食谱</button>
+                    <button class="filter-btn" data-filter="easy">简单易做</button>
+                    <button class="filter-btn" data-filter="soup">汤类</button>
+                    <button class="filter-btn" data-filter="stirfry">炒菜</button>
+                    <button class="filter-btn" data-filter="vegetarian">素食</button>
+                </div>
+
+                <div class="recipe-gallery">
+                    <!-- 食谱项目将通过JavaScript动态生成 -->
+                </div>
+            </section>
+
+           <!-- 关于我们 -->
+            <section class="card">
+                <h2><i class="fas fa-users"></i> 关于我们</h2>
+                <p style="margin-bottom: 20px; font-size: 1.1rem; line-height: 1.8;">
+                    蘑法识界是一个专注于“野生蘑菇智能识别”与“真菌科普”的实用工具平台。我们致力于通过人工智能技术，帮助大众安全、快速地识别蘑菇种类，普及真菌知识，降低误食毒蘑菇的风险，让每一位自然爱好者都能安心探索自然。
+                </p>
+
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div>
+                            <h3>我们的使命</h3>
+                            <p>用AI技术守护自然安全，让蘑菇识别更简单、更准确，普及科学的真菌知识，倡导安全、理性的野生菌认知与使用。</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div>
+                            <h3>我们的理念</h3>
+                            <p>坚持“安全第一、科学严谨、实用便捷”，始终把用户生命安全放在首位，拒绝盲目采食野生蘑菇。</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div>
+                            <h3>项目介绍</h3>
+                            <p>基于深度学习与图像识别技术打造蘑菇识别系统，收录常见食用蘑菇与剧毒蘑菇，支持图片上传与实时摄像头识别。</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div>
+                            <h3>使用说明</h3>
+                            <p>本平台仅供学习参考，不构成采食建议。野生蘑菇风险极高，任何识别结果均不能作为食用依据。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mushroom-details" style="margin-top: 30px;">
+                    <div class="detail-item">
+                        <h4>📊 蘑菇种类</h4>
+                        <p>覆盖19种常见蘑菇</p>
+                    </div>
+                    <div class="detail-item">
+                        <h4>🔬 识别方式</h4>
+                        <p>图片上传 + 实时摄像头</p>
+                    </div>
+                    <div class="detail-item">
+                        <h4>📚 附加功能</h4>
+                        <p>蘑菇百科 + 食谱大全</p>
+                    </div>
+                    <div class="detail-item">
+                        <h4>🛡️ 核心原则</h4>
+                        <p>科普为主，拒绝采食</p>
+                    </div>
+                </div>
+
+                <div class="warning" style="margin-top: 30px;">
+                    <h4><i class="fas fa-comments"></i> 联系我们</h4>
+                    <p>
+                        如果您有任何问题、建议或合作意向，欢迎通过以下方式联系我们：<br>
+                        📧 邮箱：<a href="mailto:1589129526@qq.com" style="color: #4CAF50; text-decoration: none;">1589129526@qq.com</a><br>
+                        📱 微信公众号：蘑法识界<br>
+                        📞 客服热线：110-123-4567
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>蘑法识界 &copy; 2026 | 探索真菌世界，识别蘑菇奥秘</p>
+            <p>注意：本工具仅供参考，食用野生蘑菇前请咨询专家。</p>
+            <p>设计开发：蘑法识别团队 | <i class="fas fa-envelope"></i> contact@magicfungi.cn</p>
+        </footer>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeLoginModal">&times;</span>
+            <h3>登录蘑法识界</h3>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">电子邮箱</label>
+                    <input type="email" id="loginEmail" placeholder="请输入您的邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <div class="form-options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">记住我</label>
+                    </div>
+                    <a href="#" class="forgot-password">忘记密码？</a>
+                </div>
+                <button type="submit" class="btn modal-btn">登录</button>
+            </form>
+            <div class="form-switch">
+                还没有账号？ <a href="#" id="switchToRegister">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册模态框 -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeRegisterModal">&times;</span>
+            <h3>注册蘑法识界</h3>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">用户名</label>
+                    <input type="text" id="registerUsername" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">电子邮箱</label>
+                    <input type="email" id="registerEmail" placeholder="请输入您的邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请设置密码（至少6位）" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入密码" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="acceptTerms" required>
+                    <label for="acceptTerms">我已阅读并同意 <a href="#" style="color: #4CAF50;">服务条款</a> 和 <a href="#" style="color: #4CAF50;">隐私政策</a></label>
+                </div>
+                <button type="submit" class="btn modal-btn">注册</button>
+            </form>
+            <div class="form-switch">
+                已有账号？ <a href="#" id="switchToLogin">立即登录</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 蘑菇详情模态框（新增） -->
+    <div class="modal" id="mushroomDetailModal">
+        <div class="modal-content recipe-modal-content">
+            <span class="close-modal" id="closeMushroomModal">&times;</span>
+            <div id="mushroomDetailContent">
+                <!-- 蘑菇详情将通过 JavaScript 动态填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 食谱详情模态框 -->
+    <div class="modal" id="recipeModal">
+        <div class="modal-content recipe-modal-content">
+            <span class="close-modal" id="closeRecipeModal">&times;</span>
+            <div id="recipeDetailContent">
+                <!-- 食谱详情将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        // 蘑菇数据库（已添加独立的图片路径）
+            const mushroomDatabase = [
+            {
+                id: 1,
+                name: "白毒伞",
+                scientificName: "Amanita virosa",
+                edibility: "慎食",
+                habitat: "黧蒴树树荫下",
+                season: "春季3-4月，5-7月少量",
+                distribution: "河北、吉林、江苏，福建、安徽、湖南、广西、四川、云南、西藏",
+                description: "致命白毒伞（学名：Amanita virosa Lam），别称致命鹅膏菌，是鹅膏科鹅膏菌属植物。致命白毒伞为白色，菌体幼时卵形，后菌盖展开成伞状；菌褶较密；菌柄长7-9cm，近圆柱形或略向上收细，白至近白色，基部膨大，近球形；菌环生于菌柄顶部或近顶部，薄，膜质。广泛分布在广州、清远、肇庆等地的一种毒蘑菇。常在黧蒴树树荫下群生或散生，大量生长于春季温暖多雨的3-4月，5-7月也少量出现。白毒伞的毒素主要为毒伞肽和毒肽类，对人体肝、肾、血管内壁细胞及中枢神经系统的损害极为严重。误食后主要出现恶心、呕吐、腹泻、腹痛等急性胃肠炎症状。",
+                warning: "白毒伞剧毒，绝对不可食用！误食可致命！",
+                image: "data/mushrooms_train/白毒伞/白毒伞 (25).jpg"
+            },
+            {
+                id: 2,
+                name: "毒蝇伞",
+                scientificName: "Amanita muscaria",
+                edibility: "慎食",
+                habitat: "松林里与松树等植物共生",
+                season: "夏秋季",
+                distribution: "生长环境遍及北半球温带和极地地区，并且也无意间拓展到南半球，在松林里与松树等植物共生，现在成为全球性的物种。",
+                description: "毒蝇伞（学名：Amanita muscaria），又称毒蝇鹅膏菌、蛤蟆菌·毒蝇蕈，英文俗称fly agaric或fly Amanita，是一种含有神经性毒害的担子菌门真菌，鹅膏菌属之一。菌体子实体较大。菌盖宽6-20cm。边缘有明显的短条棱，表面鲜红色或桔红色，并有白色或稍带黄色的颗粒状鳞片。菌褶纯白色，密，离生，不等长。菌肉白色，靠近盖表皮处红色。菌柄较长，直立，纯白，长12-25cm，粗1-2.5cm，表面常有细小鳞片夏秋季在林中地上成群生长。此蘑菇因可以毒杀苍蝇而得名。其毒素有毒蝇碱、毒蝇母、基斯卡松以及豹斑毒伞素等。误食后约6小时以内发病，产生剧烈恶心、呕吐、腹痛、腹泻及精神错乱，出汗、发冷、肌肉抽搐、脉搏减慢、呼吸困难或牙关紧闭，头晕眼花，神志不清等症状。使用阿托品疗效良好。纵使人们普遍认知到毒蝇伞有毒性，但是，因为此菇类而致死的案例是极端少见的，并且在使用大量水煮熟过后，在欧洲、亚洲和北美洲，成为一个广泛使用的食材。",
+                warning: "有毒蘑菇，不可随意食用！",
+                image: "data/mushrooms_train/毒蝇伞/毒蝇伞 (68).jpg"
+            },
+            {
+                id: 3,
+                name: "海鲜菇",
+                scientificName: "Hypsizygus marmoreus",
+                edibility: "可食",
+                habitat: "春秋冬季生于壳斗科树种，如山毛榉及其他阔叶树的枯木、风倒木、树桩上",
+                season: "全年",
+                distribution: "斑玉蕈原产于寒温带的山毛榉等阔叶林区，多在秋季发生，是一种木腐菌。",
+                description: "海鲜菇，学名Hypsizygus marmoreus (Peck) H.E.Bigelow，又名玉蕈（xùn）、斑玉蕈，真姬菇，质地脆嫩，味道鲜美，具有海蟹味，在日本称之为“蟹味菇”、“海鲜菇”。隶属于白蘑科、玉蕈属，子实体中等至较大。海鲜菇如今栽培的有浅灰色和纯白色两个品系，白色品系又称“白玉菇”、“玉龙菇”。子实体丛生，菌盖幼时球形，成熟后渐平展，直径1~7.5cm，菌盖表面光滑，近白色至灰褐色，干后呈灰色至褐色。菌盖四周色浅，中部色深，表面有明显大理石状斑纹。菌柄较长，中生，内实，肉质白色或近白色至灰色，多为圆柱状，有时基部膨大，长度因不同菌株而异，菌柄直径1.0~3.5cm。菌褶为片状，弯生或直生，呈密集排列，不等长，白色。担子棒状，其上着生2~4个担孢子。担孢子卵圆形，无色，光滑，内含颗粒。孢子印白色。海鲜菇营养丰富，蛋白质占 14.7%，碳水化合物43.2%，脂肪4.31%，纤维素15.4%;富含 18种氨基酸。海鲜菇味道鲜美，质地脆嫩，营养价值高，是一种低热量、低脂肪的保健食品。食用菜海鲜菇还具有较高的药用价值：海鲜菇子实体中提取的6-1，3-D葡聚糖具有很高的抗肿瘤活性，而且从海鲜菇中分离得到的聚合糖酶的活性也比其它菇类要高许多，其子实体热水提取物和有机溶剂提取物有清除体内自由基作用，因此，有防止便秘、抗癌、防癌、提高免疫力、预防衰老、延长寿命的独特功能。经测定100g鲜海鲜菇中含水88%、粗蛋白3.0g棚脂肪0.08g、粗纤维1.03g、碳水化合物7.4g、灰分0.70g（主要是磷、钾、铁、钙、锌等矿物质元素）、0.64mg维生素B1、5.84mgB2、186.99mgB6、VC13.8mg，含17种氨基酸，占干重13.27%，其中7种人体必需氨基酸占氨基酸总量的36.82%。",
+                warning: "可食用，需煮熟",
+                image: "data/mushrooms_train/海鲜菇/海鲜菇 (88).jpg"
+            },
+            {
+                id: 4,
+                name: "红菇",
+                scientificName: "Russula",
+                edibility: "可食",
+                habitat: "阔叶林、混交林",
+                season: "夏秋季",
+                distribution: "红菇分布于日本、韩国、俄罗斯、美国等国家。在中国自然分布于东南部的亚热带常绿阔叶林带里，其范围包括16个省市自治区，以云南、广东、广西、福建、台湾居多，在东北的黑龙江、吉林、辽宁和河北、甘肃等省也有分布。",
+                description: "红菇（学名：Russula）是红菇科、红菇属菌的统称，又名红蕈、正红菇、大红菇、美丽红菇等， 是高等担子菌的重要类群之一。主要形态特征为菌盖表面颜色较为鲜艳，多数有红色色调，菌丝无锁状联合，子实体菌丝组织中有较多膨大的球状细胞，导致菌肉和菌柄较脆，菌柄常中空，孢子印白色至深黄色，孢子表面淀粉质，有疣刺状纹饰。红菇是一类具有较高经济和研究价值的食药用真菌，部分种类有毒。 红菇属大多数种类是可食用的，且营养丰富，味道鲜美，有“菇中之王”的美称，系天然营养佳品，具有较高的营养价值。红菇含有丰富的必需氨基酸、多糖、有机酸、维生素、脂肪酸和甾类化合物、色素和抗生素等。",
+                warning: "部分品种有毒，需专业辨别",
+                image: "data/mushrooms_train/红菇/红菇 (136).jpg"
+            },
+            {
+                id: 5,
+                name: "猴头菇",
+                scientificName: "Hericium erinaceus",
+                edibility: "可食",
+                habitat: "北温带的阔叶林或针叶、阔叶混交林中",
+                season: "夏秋季",
+                distribution: "猴头菇在自然界中分布很广，主要分布在北温带的阔叶林或针叶、阔叶混交林中，如西欧、北美、日本、俄罗斯等地。在中国，主要分布在东北大、小兴安岭，西北天山、阿尔泰山，西部的喜马拉雅山及西南横断山脉的林区，包括黑龙江、吉林、内蒙古、河北、河南、陕西、山西、甘肃、四川、湖北、湖南、广西、云南、西藏、浙江、福建等省级自治区。",
+                description: "猴头菇（学名：Hericium erinaceus (Bull.) Pers.）是齿菌科、猴头菇属真菌。子实体中等、较大或大型，直径3.5-10（30）厘米，肉质，外形呈头状或倒卵状，似猴子的头，故名“猴头”。基部着生处狭窄，人工栽培猴头菇基部常因长于瓶口或塑料袋口内而呈柄状。除基部外，周体外被覆菌刺。菌刺长1-5厘米，针形，粗1-2毫米。孢子生于菌刺表面，球形，直径（5.5-7.5）微米×（5-6）微米，内含油滴，孢子堆白色。猴头菇在中国既是食用珍品，又是重要的药用菌。猴头菇是中国八大“山珍”之一，自古就有“山珍猴头，海味燕窝”之说，与熊掌、海参和鲨鱼翅并列为四大名菜，肉嫩味香，鲜美可口，营养丰富，色、香、味上乘。另外，猴头菇也是中国传统的贵重中药材，具有滋补健身、助消化、利五脏的功能。现代研究表明，其含有多肽、多糖、脂肪和蛋白质等活性成分，对消化道肿瘤、胃溃疡和十二指肠溃疡、胃炎、腹胀等有一定疗效。",
+                warning: "可食用，需煮熟",
+                image: "data/mushrooms_train/猴头菇/猴头菇 (258).jpg"
+            },
+            {
+                id: 6,
+                name: "鸡枞菌",
+                scientificName: "Termitomyces albuminosus",
+                edibility: "可食",
+                habitat: "与白蚁共生的林地",
+                season: "夏季",
+                distribution: "鸡枞菌属主要分布于非洲中南部、马达加斯加、南亚、东亚及南太平洋岛屿等热带、亚热带地区。在中国主要分布于长江下游以南的广大地区，江苏、福建、台湾、广东、广西、四川、贵州、云南等省均有分布。",
+                description: "鸡枞菌（Termitomyces albuminosus ）属伞菌目口蘑科鸡枞菌属，是与白蚁共生的真菌，别名鸡枞、鸡肉菇、蚁棕等，又称为“菌中之王”。鸡枞菌由菌丝体和子实体组成。菌丝浓密、洁白，匍匐型。子实体中等至大型，菌盖宽3~23.5cm，幼时圆锥形至钟形，长老后辐射状开裂似伞形。菌肉白色，较厚；菌褶白色至乳白色，老层带黄色，弯生或近离生，边缘波状；菌柄较粗壮，内实基部膨大具有褐色至黑褐色的细长假根，担孢子椭圆形，一端稍渐尖、透明、光滑。《本草纲目》记载鸡枞菌有“益味、清神、治痔”的作用，具有健脾和胃，疗痔的功效，主治脘腹胀满、消化不良、精神疲乏、痔疮。鸡枞菌可食用，所含人体所必需的氨基酸、蛋白质、脂肪等，可用来煮汤、烧菜等，其滋味鲜美，风味类似鸡汤。",
+                warning: "可食用，需与相似毒菌区分",
+                image: "data/mushrooms_train/鸡枞菌/鸡枞菌 (352).jpg"
+            },
+            {
+                id: 7,
+                name: "鸡油菌",
+                scientificName: "Cantharellus cibarius",
+                edibility: "可食",
+                habitat: "海拔600~1200米的阔叶林内",
+                season: "夏秋季",
+                distribution: "鸡油菌在中国主要分布于东北、华北、华东、西南、华南等地。多生长在海拔600~1200米的阔叶林内。多生于南、东南向的山梁或山腰，坡度为20°左右的坡地，沟谷洼地很少发生。散生至群生。",
+                description: "鸡油菌（学名：Cantharellus cibarius Fr.）为鸡油菌科鸡油菌属真菌，又名鸡蛋黄菌、黄菌、杏菌等。鸡油菌子实体肉质，喇叭形，杏黄色至蛋黄色。菌盖宽3~10厘米，高7~12厘米，初扁平，后渐下凹，边缘伸展，波状或瓣状，内卷。菌肉稍厚，蛋黄色。菌褶棱状，窄，向下延生至柄部，分叉，或有横脉相连交织成网状，与菌盖同色或稍浅。菌柄长2~8厘米，粗5~8毫米，圆柱形，基部有时稍细或稍大，与菌盖同色或稍浅，光滑，内实。孢子椭圆形或卵圆形，无色；孢子印黄白色。鸡油菌味鲜美，具特殊水果香味。鸡油菌有药用价值，能清目，益肠胃。可治因维生素A引起的皮肤粗糙或干燥，角膜软化症，眼干燥病及夜盲症，还可治疗某些呼吸道及消化道感染引起的疾病。",
+                warning: "可食用，味道鲜美",
+                image: "data/mushrooms_train/鸡油菌/鸡油菌 (14).jpg"
+            },
+            {
+                id: 8,
+                name: "金针菇",
+                scientificName: "Flammulina velutipes",
+                edibility: "可食",
+                habitat: "多丛生于榆树、柳树等阔叶林腐木桩上",
+                season: "全年",
+                distribution: "金针菇在中国、日本、俄罗斯、欧洲、北美洲澳大利亚等地均有分布。在中国北起黑龙江，南至云南，东起江苏，西至新疆均适合金针菇生长。多丛生于榆树、柳树等阔叶林腐木桩上或根部，偶尔也生在多种阔叶树活立木。",
+                description: "金针菇（Flammulina velutipes），口蘑科金针菇属菌类。其菌盖球形，边缘薄，黄褐色，表面黏滑，基部相连，呈簇生状。干品形似金针菜，故名金针菇。金针菇表面为黄色、深黄褐色或肉桂色，中部色稍深，边缘乳黄色。金针菇丝白色至乳白色或微带肉粉色，长度不等。金针菇本身清香脆嫩，味美润滑，风味独特，煮熟后可配酱料食用。此外，还可以与荤菜拼配，如列入中国特色菜谱的金菇三色鱼、金菇炒鳝鱼、金菇绣球、金菇溜鸡、金菇凤燕等。 [9]中国栽培金针菇历史已久，元代《农书》记载顾详。《本草纲目》中记载：金针菇性凉，味甘，归脾、大肠经。金针菇具有补肝、益肠胃、抗癌之功效，对肝病、胃肠道抗感染、渍疡、肿瘤等病证有食疗作用。",
+                warning: "可食用，必须煮熟",
+                image: "data/mushrooms_train/金针菇/金针菇 (14).jpg"
+            },
+            {
+                id: 9,
+                name: "口蘑",
+                scientificName: "Agaricus bisporus",
+                edibility: "可食",
+                habitat: "草原上，有羊骨或羊粪处",
+                season: "夏秋雨后，立秋前后最多",
+                distribution: "夏秋两季雨后，尤其在立秋前后大量地产生在草原上，形成“蘑菇圈”。分布于河北、内蒙古。",
+                description: "口蘑是生长在蒙古草原上的一种白色伞菌属野生蘑菇，主要产地在锡盟的东乌旗、西乌旗和阿巴嘎旗、呼伦贝尔市、通辽等草原地区，一般生长在有羊骨或羊粪的地方，味道异常鲜美。由于蒙古口蘑土特产以前都通过河北省张家口市输往内地，张家口是蒙古货物的集散地，所以被称为“口蘑”。由于产量不大，需求量大，所以价值昂贵，仍然是中国市场上最为昂贵的一种蘑菇。口蘑子实体群生，并形成蘑菇圈，中等至较大。菌盖直径17厘米，半球形至平展，白色，光滑，初期边缘内卷。菌肉白色，厚，具香气。菌褶白色，弯生，稠密，不等长。菌柄中生，粗壮，长3.5-7厘米，粗1.5-4.6厘米，基部稍膨大，白色，内实。孢子椭圆形。口蘑是直接食用的名贵真菌，主要品种有白蘑、青腿子、马莲杆、杏香等，其中以白蘑色、香、味最佳。口蘑用来清炖、红烧、做汤均可，其味清香、鲜美，历来为席上珍馐。口蘑菌肉肥厚，质细具香气，味鲜美，营养价值高，是中国北方草原盛产的“口蘑”之最上品，畅销于国内外市场。口蘑属中有10多种都是味美的食用真菌。",
+                warning: "可食用，味道鲜美",
+                image: "data/mushrooms_train/口蘑/口蘑 (349).jpg"
+            },
+            {
+                id: 10,
+                name: "灵芝",
+                scientificName: "Ganoderma lucidum",
+                edibility: "可食",
+                habitat: "向阳的壳斗科和松科松属植物根际或枯树桩上",
+                season: "全年",
+                distribution: "赤芝：我国普遍分布，但以长江以南为多,生于向阳的壳斗科和松科松属植物等根际或枯树桩上;紫芝：为我国特有种，分布于长江以南高温多雨地带,生于阔叶树或松科松属的树桩上。引起木材白色腐朽。",
+                description: "灵芝，中药名。为多孔菌科真菌赤芝Ganoderma lucidum（Leyss. ex Fr.）Karst.或紫芝Ganoderma sinense Zhao，Xu et Zhang的干燥子实体。1、赤芝：腐生真菌，子实体，有柄，木栓质。菌盖半圆形或肾形，直径10-20cm，盖肉厚1.5-2cm，盖表褐黄色或红褐色，盖边渐趋淡黄，有同心环纹，微皱或平滑，有亮漆状光泽，边缘微钝。菌肉乳白色，近管处淡褐色。菌管长达1cm，每1mm间4-5个。管口近圆形，初白色，后呈淡黄色或黄褐色。菌柄圆柱形，侧生或偏生，偶中生。长10-19cm，粗1.5-4cm，与菌盖色泽相似。皮壳部菌丝呈棒状，顶端膨大。菌丝系统三体型，生殖菌丝透明，薄壁；骨架菌丝黄褐色，厚壁，近乎实心；缠绕菌丝无色，厚壁弯曲，均分枝。孢子卵形，双层壁，顶端平截，外壁透明，内壁淡褐色，有小刺，大小（9-11）μm×（6-7）μm，担子果多在秋季成熟，华南及西南可延至冬季成熟。2、紫芝：与前种不同点是：紫芝的菌盖多呈紫黑色至近褐黑色；菌肉呈均匀的褐色、深褐色至栗褐色；孢子顶端脐突形，内壁突出的小刺明显，孢子较大，大小（9.5-13.8）μm×（6.9-8.5）μm。具有补气安神，止咳平喘的功效。主治心神不宁，失眠，惊悸，咳喘痰多，虚劳证等。",
+                warning: "药用真菌，遵医嘱使用",
+                image: "data/mushrooms_train/灵芝/灵芝 (136).jpg"
+            },
+            {
+                id: 11,
+                name: "牛肝菌",
+                scientificName: "Boletus edulis",
+                edibility: "可食",
+                habitat: "针叶林、混交林地带",
+                season: "6～10月",
+                distribution: "白牛肝生长于云南松、高山松、麻栎（所以又叫麻栎香）、金皮栎、青风栎等针叶林和混交林地带，单生或群生。常与栎和松树的根形成菌根。产于6～10月，温暖地区稍出得早些，温凉、高寒地区出得晚一些。喀什地区也有部分分布。牛肝菌在云南各地均有分布，产期为每年的6～10月。",
+                description: "牛肝菌是牛肝菌科和松塔牛肝菌科等真菌的统称，是野生而可以食用的菇菌类，其中除少数品种有毒或味苦而不能食用外，大部分品种均可食用。主要有白、黄、黑牛肝菌。菌盖扁半球形，光滑、不粘、淡褐色，菌肉白色，有酱香味，可入药。大腿蘑营养丰富，味道香美，是极富美味的野生食用菌之一，可出口欧美、日本等国，深受外商欢迎。该菌菌体较大，肉肥厚，柄粗壮，食味香甜可口，营养丰富，是一种世界性著名食用菌。据分析，100 g干品中含蛋白质20.2 g，碳水化合物64.2 g，热量338千卡，灰分4.0 g，钙23 mg，磷500 mg，铁50 mg，核黄素3.68 mg。该菌具有清热解烦、养血和中、追风散寒、舒筋和血、补虚提神等作用，中医认为对贫血、体虚、头晕、耳鸣有功效，是中成药“舒筋丸”的原料之一；又是妇科良药，可治妇女白带症及不孕症。此外，其水提物对小白鼠肉瘤S-180的生长有阻抑作用，对肉瘤S-180的抑制率为100%，对艾氏腹水癌的抑制率为90%。同时还有抗流感病毒、防治感冒的作用。牛肝菌类是牛肝菌科和松塔牛肝菌科等真菌的统称，其中除少数品种有毒或味苦而不能食用外，大部分品种均可食用。",
+                warning: "部分品种有毒，必须彻底煮熟",
+                image: "data/mushrooms_train/牛肝菌/牛肝菌 (1177).jpg"
+            },
+            {
+                id: 12,
+                name: "平菇",
+                scientificName: "Pleurotus ostreatus",
+                edibility: "可食",
+                habitat: "多种阔叶树种的枯木、朽树桩",
+                season: "全年",
+                distribution: "平菇属好光菌类，多生于榆、榉、械、柳、栎、枫、槐等多种阔叶树种的枯木、朽树桩或活树的枯死部位上。平菇在世界各地均有分布，在中国绝大部分地区均有生产，尤以河南、河北、山东、黑龙江等省最多。",
+                description: "平菇（学名：Pleurotus ostreatus）是侧耳科侧耳属真菌。子实体丛生或叠生，菌盖呈覆瓦状丛生，扇状、贝壳状、不规则的漏斗状。菌盖肉质肥厚柔软。菌盖表面颜色受光线的影响而变化，光强色深，光弱色浅。菌褶白色，长短不一，长的由菌盖边缘一直延伸到菌柄，短的仅在菌盖边缘有一小段，形如扇骨。菌柄侧生或偏生，白色，中实；菌丝体白色，粗壮有力，菌肉白色、稍厚、柔软。平菇是一种食用菌，含丰富的营养物质，具有追风散寒、舒筋活络的功效。用于治腰腿疼痛、手足麻木，筋络不通等病症。另外，对预防癌症、调节妇女更年期综合征、改善人体新陈代谢、增强体质都有一定的好处。",
+                warning: "可食用，需煮熟",
+                image: "data/mushrooms_train/平菇/平菇 (3).jpg"
+            },
+            {
+                id: 13,
+                name: "乳菇",
+                scientificName: "Lactarius deliciosus",
+                edibility: "可食",
+                habitat: "针叶林或针阔叶树林中地上",
+                season: "夏秋季",
+                distribution: "松乳菇在北半球分布很广，夏、秋季单生、散生于针叶林或针阔叶树林中地上，常形成菌根。凡有针叶林（特别是松树）生长的地方，几乎都有松乳菇的分布，南半球仅见于澳大利亚的辐射松林下。在中国，主要分布于长江中下游以及沿海地区，产于我国浙江、湖南、台湾、海南、河南、河北、山西、吉林、辽宁、江苏、安徽、江西、甘肃、青海、四川、云南 、新疆、西藏等省区。",
+                description: "松乳菇（学名：Lactarius deliciosus (L.) Gray）是红菇科、乳菇属真菌。担子果具中生柄，通常单生或多个群生，新鲜时肉质，无嗅无味，干后碎质；菌盖幼时半球形，中间下凹，成熟时平展、中凹形，直径为3-12厘米，中部厚8-20毫米；菌丝隔膜简单分隔；菌丝IKI-，CB-；菌肉菌丝无色，略厚壁，经常分枝，略弯曲；菌髓菌丝无色，薄壁至略厚壁，少分枝，频繁分隔，略弯曲；担孢子广椭圆形，无色，厚壁，具刺。松乳菇子实体含有丰富的营养成分，特别是含有丰富的氨基酸。松乳菇还含有丰富的矿物质元素，另外，松乳菇具有抑制肿瘤，抗菌等作用。",
+                warning: "可食用，味道鲜美",
+                image: "data/mushrooms_train/乳菇/乳菇 (1051).jpg"
+            },
+            {
+                id: 14,
+                name: "松茸",
+                scientificName: "Tricholoma matsutake",
+                edibility: "可食",
+                habitat: "松属和栎属植物林地",
+                season: "秋季",
+                distribution: "国外主要分布于日本、朝鲜、美国、加拿大和北欧国家，中国松茸主要分布于西南和东北地区。松茸是一种菌根菌，生长所需养分来自于植物根系。松茸的主要寄主为松属和栎属植物。松茸适宜生长的土壤缺乏水分，呈酸性，这样的土壤中与松茸形成竞争的真菌较少。",
+                description: "松茸菌即松茸（学名：Tricholoma matsutake (S.Ito & S.Imai) Singer）是口蘑科（Tricholomataceae）口蘑属（Tricholoma）的一种真菌。松茸子实体一般单生。菌盖直径8~20厘米，初呈圆球形，随着菌柄加长，后期环膜在柄上部破裂，菌盖开始展开，中凸而渐展平，边缘内卷；表面干燥，初期栗褐色或肉桂色，具纤维状绒毛和栗褐色鳞片，老熟时为黑褐色，中央色深，边缘部位色白，光滑或微具残膜附着。菌褶片状，白色，伤后微变为淡褐色，褶幅宽1~1.5厘米。与菌柄弯生。菌柄圆柱形，长5~19厘米，粗1.5~3.5厘米，上下等粗或上部略细，柄上部为乳白色。在显微镜下观察，孢子无色，孢子印白色，光滑，宽椭圆形至近球形。松茸被称为“蘑菇之王”。其菇体肥大，肉质细嫩，是一种美味可口，并具有一定药用价值的名贵食用菌。由于经济价值很高被掠夺式开发，许多地区野生资源量急剧下降。2021年，被列入国家二级重点保护野生物种行列。松茸在食品产业中，由于其香味独特浓郁、菌肉肥厚、鲜嫩爽滑及营养成分高等特点，具有极高地位。",
+                warning: "珍贵食用菌，需保护野生资源",
+                image: "data/mushrooms_train/松茸/松茸 (169).jpg"
+            },
+            {
+                id: 15,
+                name: "香菇",
+                scientificName: "Lentinula Edodes",
+                edibility: "可食",
+                habitat: "冬春季生于阔叶树倒木上",
+                season: "冬春季",
+                distribution: "主要分布在安徽、江苏、上海、浙江、江西、湖南、福建、中国台湾、广东、广西、云南、贵州、四川等地。香菇是低温和变温结实性的菇类，冬春季生于阔叶树倒木上，群生，散生或单生。",
+                description: "香菇（拉丁学名：Lentinula Edodes），俗名花菇、花蕈、香信、香菌、香蕈等，伞菌目口蘑科香菇属植物，是一种食用真菌，素有“山珍之王”、“菌菇皇后”、“植物皇后”之称。香菇子实体单生、丛生或群生，子实体中等大至稍大。菌盖直径5-12cm，有时可达20cm，幼时半球形，后呈扁平至稍扁平，表面菱色、浅褐色、深褐色至深肉桂色，边缘常有污白色毛状或絮状鳞片。中国最早栽培香菇，已有800多年历史。香菇也是中国著名的药用菌。中国历代医药学家对香菇的药性及功用均有著述。香菇肉质肥厚细嫩，味道鲜美，香气独特，营养丰富，是一种食药同源的食物，具有很高的营养、药用和保健价值。",
+                warning: "可食用，需泡发煮熟",
+                image: "data/mushrooms_train/香菇/香菇 (131).jpg"
+            },
+            {
+                id: 16,
+                name: "小皮伞",
+                scientificName: "Agrocybe aegerita",
+                edibility: "可食",
+                habitat: "阔叶树腐木",
+                season: "全年",
+                distribution: "东亚地区人工栽培广泛",
+                description: "小松菇又称茶树菇，菌柄脆嫩，香味浓郁，是常见的人工栽培食用菌，适合煲汤、爆炒。",
+                warning: "可食用，需彻底煮熟",
+                image: "data/mushrooms_train/小皮伞/小皮伞 (722).jpg"
+            },
+            {
+                id: 17,
+                name: "杏鲍菇",
+                scientificName: "Pleurotus eryngii",
+                edibility: "可食",
+                habitat: "伞形花科植物根部、人工栽培",
+                season: "全年",
+                distribution: "杏鲍菇原产于欧洲南部、意大利、西班牙等地区；在世界范围内，常分布于亚洲、欧洲、大洋洲(澳大利亚)、北美洲等地区；在中国，主要分布于福建、山东、浙江、青海、黑龙江、四川、山西等省区。",
+                description: "杏鲍菇学名为Pleurotus eryngii，属名为Pleurotus在拉丁语中意为“侧耳”，指在茎的侧面附着；种名“eryngii”来源于希腊语“gryngos”，因杏鲍菇最早发现于刺芹属Eryngium的植株而命名。按照学名的原意，其中文名可译为“刺芹侧耳”。“eryngos”原本指一种蓟类植物，因此杏鲍菇又被称为“蓟侧耳”。担子体单生、群生或丛生。菌盖直径3-6厘米，初扁半球形、圆形、贝壳形，微下凹，表面光滑，浅黄色至污白色，密被浅褐色的鳞片或点；成熟后扁平，圆形，表面光滑，干燥，浅褐色至黄褐色，被褐色鳞片；菌盖边缘内卷，有时开裂。菌褶延生至柄，不交织，紫色，褶幅窄，稍密，具有小菌褶；褶缘平整光滑。菌柄偏生、中生，圆筒形，坚硬，基部被污白色绒毛，如为群生、丛生，则柄基相连。菌肉肉质，复性强，干时坚硬，白色至奶油色。无菌环或菌幕。孢子印白色。杏鲍菇菌肉肥厚，质地脆嫩，营养丰富，味道鲜美，菌盖、菌柄均口感极好，爽口似鲍鱼，并具有杏仁香味，有“平菇王”之称。据中国福建省农业科学院测定，杏鲍菇粗蛋白含量为20%，粗脂肪为3.5%，粗纤维为13.28%，矿物质含量丰富，尤其钾、磷含量高，多糖含量为6.3%，比香菇5.7％的含量还要高。杏鲍菇中17种氨基酸总量高达15.85%，其中人体必需氨基酸含量为6.65%，精氨酸、赖氨酸的含量特别高，是一种极其珍贵的天然保健食品。",
+                warning: "可食用，口感脆嫩",
+                image: "data/mushrooms_train/杏鲍菇/杏鲍菇 (88).jpg"
+            },
+            {
+                id: 18,
+                name: "羊肚菌",
+                scientificName: "Morchella esculenta",
+                edibility: "可食",
+                habitat: "林地和草地",
+                season: "春季",
+                distribution: "羊肚菌在全世界都有分布，其中在法国、德国、美国、印度、中国分布较广，其次在俄罗斯、瑞典、墨西哥、西班牙、捷克斯洛伐克和巴基斯坦局部地区等均有零星分布。羊肚菌在中国的分布极为广泛，北至东北三省，南至广东、福建、台湾，东至山东，西至新疆、西藏、宁夏、贵州共28个省、市、自治区。",
+                description: "羊肚菌（学名：Morchella esculenta (L.) Pers. ）是羊肚菌科、羊肚菌属真菌。羊肚菌，菌盖近球形、卵形至椭圆形，高4-10厘米，宽3-6厘米，顶端钝圆，表面有似羊肚状的凹坑。凹坑不定形至近圆形，宽4-12毫米，蛋壳色至淡黄褐色，棱纹色较浅，不规则地交叉。柄近圆柱形，近白色，中空，上部平滑，基部膨大并有不规则的浅凹槽，长5-7厘米，粗约为菌盖的2/3。子囊圆筒形，孢子长椭圆形，无色，每个子囊内含8个，呈单行排列。侧丝顶端膨大，粗达12微米，体轻，质酥脆。羊肚菌是食药兼用菌，其香味独特，营养丰富，富含多种人体需要的氨基酸和有机锗，一直被欧美等国家作为人体营养的高级补品。",
+                warning: "必须彻底煮熟才能食用",
+                image: "data/mushrooms_train/羊肚菌/羊肚菌_230.jpg"
+            },
+            {
+                id: 19,
+                name: "竹荪",
+                scientificName: "Dictyophora indusiata",
+                edibility: "可食",
+                habitat: "竹林、腐殖土",
+                season: "夏季",
+                distribution: "日本、印度、斯里兰卡、印度尼西亚，菲律宾、朝鲜、美国、古巴、巴西、英国、法国、俄罗斯、墨西哥、澳大利亚，以及东非等都有竹荪分布。中国的黑龙江、吉林、河北、陕西、江苏、浙江、安徽、湖南、湖北、江西、福建、四川、云南、贵州、西藏、广东、广西及台湾等省区均有分布，但各地的竹荪品种不完全相同，其中以西南各省分布较广，食用品种质量也较优。",
+                description: "竹荪又名竹笙、竹参，泛指鬼笔目鬼笔科鬼笔属（Phallus）的物种，是寄生在枯竹根部的一类菌物，原属于竹荪属后更改到鬼笔属。常被被人们称为“雪裙仙子”、“山珍之花”、“真菌之花”、“菌中皇后”。子实体中等较大，形状略似网状干白蛇皮，它有深绿色的菌帽，雪白色圆柱状的菌柄，粉红色的蛋形菌托，在菌柄顶端有一围细致洁白的网状裙从菌盖向下铺开。竹荪常见并可供食用的有4种：长裙竹荪（Phallusindusiatus）、短裙竹荪（Phallu sduplicatus）、棘托竹荪（Phallu sechinovolvatus）和红托竹荪（Phallu srubrovolvatus）。竹荪的子实体脆嫩爽口、香甜鲜美，别具风味，作为菜肴，冠于诸菌，堪称色、香、味三绝，是宴席上著名的山珍；竹荪也有很高的药用价值，其子实体中含有多种酶和高分子多糖，其多糖为异多糖，可增强肌体对肿瘤细胞的抵抗力，具有良好的防癌、抗癌作用。",
+                warning: "可食用，需清洗干净",
+                image: "data/mushrooms_train/竹荪/竹荪 (274).jpg"
+            }
+        ];
+
+        // 食谱数据库（已添加独立的图片路径）
+        const recipeDatabase = [
+            {
+                id: 1,
+                name: "奶油蘑菇汤",
+                description: "浓郁香滑的奶油蘑菇汤，简单易做，营养丰富，是秋冬季节的暖心佳品。",
+                prepTime: "15分钟",
+                cookTime: "30分钟",
+                difficulty: "简单",
+                servings: "4人份",
+                mushroomTypes: ["口蘑", "香菇"],
+                tags: ["汤类", "简单易做", "素食"],
+                icon: "🥣",
+                ingredients: [
+                    "500克新鲜蘑菇（口蘑或香菇）",
+                    "1个洋葱，切碎",
+                    "2瓣大蒜，切碎",
+                    "3杯蔬菜高汤",
+                    "1杯淡奶油",
+                    "2汤匙黄油",
+                    "2汤匙面粉",
+                    "盐和黑胡椒粉适量",
+                    "新鲜欧芹，装饰用"
+                ],
+                steps: [
+                    "将蘑菇清洗干净，切片备用。",
+                    "在一个大锅中，融化黄油，加入洋葱和大蒜，炒至透明。",
+                    "加入蘑菇，炒至蘑菇变软并释放出水分。",
+                    "撒上面粉，搅拌均匀，煮1-2分钟。",
+                    "慢慢加入蔬菜高汤，边加边搅拌，防止结块。",
+                    "煮沸后转小火，盖上锅盖煮15-20分钟。",
+                    "使用搅拌机将汤搅打成顺滑的糊状。",
+                    "放回锅中，加入淡奶油，用盐和黑胡椒粉调味。",
+                    "用小火加热，不要煮沸，煮5分钟即可。",
+                    "盛入碗中，用新鲜欧芹装饰后上桌。"
+                ],
+                tips: "可以使用不同类型的蘑菇混合制作，风味更丰富。如果想减少热量，可以用牛奶代替部分奶油。",
+                image: "image/奶油蘑菇汤.jpg"
+            },
+            {
+                id: 2,
+                name: "蒜香炒蘑菇",
+                description: "简单快手的蒜香炒蘑菇，蘑菇鲜嫩多汁，蒜香浓郁，是一道绝佳的下饭菜。",
+                prepTime: "10分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["口蘑", "香菇", "杏鲍菇"],
+                tags: ["炒菜", "简单易做", "快手菜"],
+                icon: "🍄",
+                ingredients: [
+                    "500克混合蘑菇（口蘑、香菇、杏鲍菇）",
+                    "4瓣大蒜，切片",
+                    "2根青葱，切段",
+                    "2汤匙生抽",
+                    "1汤匙蚝油",
+                    "1茶匙糖",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量",
+                    "少许芝麻油",
+                    "香菜，装饰用"
+                ],
+                steps: [
+                    "将各种蘑菇清洗干净，切片或切块备用。",
+                    "在一个小碗中，将生抽、蚝油和糖混合均匀，制成调味汁。",
+                    "热锅加油，放入大蒜片，用中小火炒至金黄色，散发出香味。",
+                    "加入蘑菇，转大火快速翻炒，直到蘑菇变软并释放出水分。",
+                    "加入青葱段，继续翻炒1-2分钟。",
+                    "倒入调味汁，快速翻炒均匀，让蘑菇充分吸收味道。",
+                    "加入盐和胡椒粉调味，淋上少许芝麻油增加香气。",
+                    "装盘，用香菜装饰后即可上桌。"
+                ],
+                tips: "炒蘑菇时要用大火快炒，以保持蘑菇的鲜嫩口感。可以根据个人口味添加辣椒或花椒增加风味。",
+                image: "image/蒜香炒蘑菇.jpg"
+            },
+            {
+                id: 3,
+                name: "蘑菇意大利面",
+                description: "经典的奶油蘑菇意大利面，蘑菇的鲜美与奶油的浓郁完美结合，是意大利餐厅级别的美味。",
+                prepTime: "15分钟",
+                cookTime: "25分钟",
+                difficulty: "中等",
+                servings: "3-4人份",
+                mushroomTypes: ["口蘑", "香菇", "牛肝菌"],
+                tags: ["主食", "西餐", "奶油"],
+                icon: "🍝",
+                ingredients: [
+                    "400克意大利面（如扁面或通心粉）",
+                    "300克混合蘑菇（口蘑、香菇、牛肝菌）",
+                    "1个洋葱，切碎",
+                    "3瓣大蒜，切碎",
+                    "1杯淡奶油",
+                    "1/2杯帕尔马干酪，磨碎",
+                    "2汤匙橄榄油",
+                    "2汤匙黄油",
+                    "1/4杯白葡萄酒（可选）",
+                    "盐和黑胡椒粉适量",
+                    "新鲜欧芹，切碎"
+                ],
+                steps: [
+                    "按照包装说明煮意大利面，煮至有嚼劲（al dente）。保留一杯煮面水。",
+                    "煮面同时，清洗蘑菇并切片。如果是干牛肝菌，需要提前用温水泡发。",
+                    "在大平底锅中加热橄榄油和黄油，加入洋葱炒至透明。",
+                    "加入大蒜和蘑菇，炒至蘑菇变软并呈金黄色。",
+                    "如果使用白葡萄酒，此时加入，煮至酒精蒸发。",
+                    "加入淡奶油，煮沸后转小火煮5分钟。",
+                    "加入煮好的意大利面和帕尔马干酪，搅拌均匀。",
+                    "如果酱汁太稠，可以加入少量保留的煮面水调整稠度。",
+                    "用盐和大量黑胡椒粉调味。",
+                    "装盘，撒上新鲜欧芹和额外帕尔马干酪即可。"
+                ],
+                tips: "使用多种蘑菇混合可以增加风味的层次感。干牛肝菌能为酱汁增添独特的香气。",
+                image: "image/蘑菇意大利面.png"
+            },
+            {
+                id: 4,
+                name: "蘑菇炖鸡",
+                description: "家常风味的蘑菇炖鸡，鸡肉鲜嫩，蘑菇吸收了汤汁的精华，是一道营养均衡的暖心菜肴。",
+                prepTime: "20分钟",
+                cookTime: "45分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["香菇", "金针菇", "杏鲍菇"],
+                tags: ["炖菜", "家常菜", "肉类"],
+                icon: "🍗",
+                ingredients: [
+                    "800克鸡腿肉，切块",
+                    "300克混合蘑菇（香菇、金针菇、杏鲍菇）",
+                    "1个洋葱，切块",
+                    "2个胡萝卜，切滚刀块",
+                    "3瓣大蒜，切片",
+                    "2汤匙生抽",
+                    "1汤匙老抽",
+                    "1汤匙料酒",
+                    "1汤匙蚝油",
+                    "1茶匙糖",
+                    "2杯水或鸡汤",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量",
+                    "青葱，切段"
+                ],
+                steps: [
+                    "鸡腿肉用盐和胡椒粉腌制15分钟。",
+                    "香菇提前用温水泡发（如果是干香菇），泡发的水留用。",
+                    "热锅加油，将鸡肉煎至两面金黄，取出备用。",
+                    "用锅中余油炒香洋葱和大蒜，直到洋葱变透明。",
+                    "加入胡萝卜和蘑菇（除了金针菇），翻炒3-4分钟。",
+                    "将鸡肉放回锅中，加入生抽、老抽、料酒、蚝油和糖，翻炒均匀。",
+                    "加入水或鸡汤（如果用干香菇，可加入泡发的水），煮沸后转小火，盖上锅盖炖25-30分钟。",
+                    "最后5分钟加入金针菇。",
+                    "尝味调整盐和胡椒粉，如果汤汁过多可以开大火收汁。",
+                    "装盘，撒上青葱段即可上桌。"
+                ],
+                tips: "使用干香菇能增加更浓郁的风味。可以加入土豆或其他蔬菜一起炖煮，营养更全面。",
+                image: "image/蘑菇炖鸡.png"
+            },
+            {
+                id: 5,
+                name: "素食蘑菇汉堡",
+                description: "健康美味的素食蘑菇汉堡，以蘑菇为主要原料，口感丰富，是素食者和健康饮食者的绝佳选择。",
+                prepTime: "25分钟",
+                cookTime: "20分钟",
+                difficulty: "中等",
+                servings: "4个汉堡",
+                mushroomTypes: ["大褐菇", "香菇", "杏鲍菇"],
+                tags: ["素食", "汉堡", "健康"],
+                icon: "🍔",
+                ingredients: [
+                    "4个大褐菇（作为汉堡肉饼）",
+                    "200克混合蘑菇（香菇、杏鲍菇），切碎",
+                    "1个洋葱，切碎",
+                    "2瓣大蒜，切碎",
+                    "1/2杯面包糠",
+                    "1个鸡蛋（或亚麻籽蛋替代品）",
+                    "1茶匙烟熏红椒粉",
+                    "1茶匙干牛至",
+                    "盐和黑胡椒粉适量",
+                    "4个汉堡面包",
+                    "生菜、番茄、洋葱圈等配料",
+                    "喜欢的酱汁（如蛋黄酱、番茄酱）"
+                ],
+                steps: [
+                    "将大褐菇的菌柄去除，用勺子轻轻刮去菌褶，做成汉堡肉饼的形状。",
+                    "用少许油煎大褐菇两面，每面3-4分钟，直到变软，取出备用。",
+                    "在同一个锅中，加入切碎的洋葱和大蒜，炒至透明。",
+                    "加入切碎的混合蘑菇，炒至水分蒸发，蘑菇变干。",
+                    "将炒好的蘑菇混合物放入碗中，冷却后加入面包糠、鸡蛋、香料和调味料，搅拌均匀。",
+                    "将混合物分成4份，捏成肉饼形状。",
+                    "在锅中加热少量油，将蘑菇肉饼每面煎4-5分钟，直到金黄色。",
+                    "同时，将汉堡面包切开，稍微烤一下。",
+                    "在面包上涂抹喜欢的酱汁，依次放上生菜、番茄、蘑菇肉饼、煎好的大褐菇和洋葱圈。",
+                    "盖上另一片面包，用竹签固定即可。"
+                ],
+                tips: "大褐菇的肉质厚实，是制作素食汉堡的理想选择。可以提前制作蘑菇肉饼，冷冻保存，需要时煎熟即可。",
+                image: "image/素食蘑菇汉堡.png"
+            },
+            {
+                id: 6,
+                name: "蘑菇炒饭",
+                description: "香气扑鼻的蘑菇炒饭，简单快速，营养均衡，是解决剩饭的最佳方式。",
+                prepTime: "10分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["香菇", "口蘑", "金针菇"],
+                tags: ["主食", "炒饭", "简单易做"],
+                icon: "🍚",
+                ingredients: [
+                    "3杯冷米饭",
+                    "200克混合蘑菇，切片",
+                    "2个鸡蛋，打散",
+                    "1个洋葱，切丁",
+                    "2瓣大蒜，切碎",
+                    "1个胡萝卜，切丁",
+                    "1/2杯青豆",
+                    "2汤匙生抽",
+                    "1汤匙蚝油",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "热锅加油，倒入打散的鸡蛋，炒熟后取出备用。",
+                    "在同一个锅中，再加一点油，加入洋葱和大蒜炒香。",
+                    "加入胡萝卜丁和蘑菇片，炒至蘑菇变软。",
+                    "加入青豆，继续翻炒2分钟。",
+                    "加入冷米饭，用锅铲将米饭压散，翻炒均匀。",
+                    "加入生抽、蚝油、盐和胡椒粉，继续翻炒至米饭均匀上色。",
+                    "将炒好的鸡蛋放回锅中，与米饭混合均匀。",
+                    "尝味调整调味，撒上青葱碎，翻炒均匀即可。",
+                    "盛入碗中，趁热食用。"
+                ],
+                tips: "使用冷米饭炒饭效果更好，因为冷米饭水分较少，不容易粘锅。可以根据个人喜好添加火腿、虾仁等其他配料。",
+                image: "image/蘑菇炒饭.png"
+            }
+        ];
+
+        // DOM元素
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const realtimeBtn = document.getElementById('realtimeBtn');
+        const videoContainer = document.getElementById('videoContainer');
+        const videoElement = document.getElementById('videoElement');
+        const videoCanvas = document.getElementById('videoCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const stopRealtimeBtn = document.getElementById('stopRealtimeBtn');
+        const previewArea = document.getElementById('previewArea');
+        const imagePreview = document.getElementById('imagePreview');
+        const identifyBtn = document.getElementById('identifyBtn');
+        const loading = document.getElementById('loading');
+        const resultArea = document.getElementById('resultArea');
+
+        // 结果元素
+        const mushroomName = document.getElementById('mushroomName');
+        const confidence = document.getElementById('confidence');
+        const mushroomDescription = document.getElementById('mushroomDescription');
+        const edibility = document.getElementById('edibility');
+        const habitat = document.getElementById('habitat');
+        const season = document.getElementById('season');
+        const distribution = document.getElementById('distribution');
+        const warningText = document.getElementById('warningText');
+
+        // 蘑菇图库容器
+        const mushroomGallery = document.querySelector('.mushroom-gallery');
+
+        // 食谱容器和过滤器
+        const recipeGallery = document.querySelector('.recipe-gallery');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+
+        // 登录注册相关元素
+        const authButtons = document.getElementById('authButtons');
+        const userInfo = document.getElementById('userInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const recipeModal = document.getElementById('recipeModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const closeRegisterModal = document.getElementById('closeRegisterModal');
+        const closeRecipeModal = document.getElementById('closeRecipeModal');
+        const switchToRegister = document.getElementById('switchToRegister');
+        const switchToLogin = document.getElementById('switchToLogin');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const recipeDetailContent = document.getElementById('recipeDetailContent');
+
+        // 实时识别相关全局变量
+        let videoStream = null;      // 摄像头流
+        let isRealtimeActive = false;
+
+        // 历史记录相关元素
+        const historyCard = document.getElementById('historyCard');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查用户是否已登录
+            checkLoginStatus();
+
+            // 生成蘑菇知识库
+            generateMushroomGallery();
+
+            // 生成食谱库
+            generateRecipeGallery();
+
+            // 绑定图片上传相关事件
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            realtimeBtn.addEventListener('click', startRealtime);
+            captureBtn.addEventListener('click', captureFromVideo);
+            stopRealtimeBtn.addEventListener('click', stopRealtime);
+            identifyBtn.addEventListener('click', identifyMushroom);
+
+            // 拖放功能
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleImageUpload(e.dataTransfer.files[0]);
+                }
+            });
+
+            // 文件选择变化
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    handleImageUpload(this.files[0]);
+                }
+            });
+
+            // 绑定登录注册相关事件
+            loginBtn.addEventListener('click', () => openModal('login'));
+            registerBtn.addEventListener('click', () => openModal('register'));
+            closeLoginModal.addEventListener('click', () => closeModal('login'));
+            closeRegisterModal.addEventListener('click', () => closeModal('register'));
+            closeRecipeModal.addEventListener('click', () => closeModal('recipe'));
+            switchToRegister.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeModal('login');
+                openModal('register');
+            });
+            switchToLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeModal('register');
+                openModal('login');
+            });
+            logoutBtn.addEventListener('click', logout);
+
+            // 表单提交事件
+            loginForm.addEventListener('submit', handleLogin);
+            registerForm.addEventListener('submit', handleRegister);
+
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) closeModal('login');
+                if (e.target === registerModal) closeModal('register');
+                if (e.target === recipeModal) closeModal('recipe');
+                if (e.target === document.getElementById('mushroomDetailModal')) {
+                    document.getElementById('mushroomDetailModal').style.display = 'none';
+                }
+            });
+
+            // 绑定食谱过滤器事件
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有按钮的active类
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // 为当前按钮添加active类
+                    this.classList.add('active');
+                    // 过滤食谱
+                    const filter = this.getAttribute('data-filter');
+                    filterRecipes(filter);
+                });
+            });
+
+            // 清空历史按钮事件
+            if (clearHistoryBtn) {
+                clearHistoryBtn.addEventListener('click', clearHistory);
+            }
+        });
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const userJson = localStorage.getItem('user');
+
+            if (token && userJson) {
+                try {
+                    const user = JSON.parse(userJson);
+                    updateAuthUI(user);
+
+                    // 向后端验证 token 有效性
+                    verifyToken();
+                } catch (e) {
+                    // 数据损坏，清除
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    showAuthButtons();
+                }
+            } else {
+                showAuthButtons();
+            }
+        }
+
+        // 打开模态框
+        function openModal(modalType) {
+            if (modalType === 'login') {
+                loginModal.style.display = 'flex';
+                document.getElementById('loginEmail').focus();
+            } else if (modalType === 'register') {
+                registerModal.style.display = 'flex';
+                document.getElementById('registerUsername').focus();
+            } else if (modalType === 'recipe') {
+                recipeModal.style.display = 'flex';
+            }
+        }
+
+        // 关闭蘑菇详情模态框
+        const closeMushroomModal = document.getElementById('closeMushroomModal');
+        if (closeMushroomModal) {
+            closeMushroomModal.addEventListener('click', function() {
+                document.getElementById('mushroomDetailModal').style.display = 'none';
+            });
+        }
+        // 关闭模态框
+        function closeModal(modalType) {
+            if (modalType === 'login') {
+                loginModal.style.display = 'none';
+            } else if (modalType === 'register') {
+                registerModal.style.display = 'none';
+            } else if (modalType === 'recipe') {
+                recipeModal.style.display = 'none';
+            }
+        }
+
+        // 处理登录
+        async function handleLogin(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            if (!email || !password) {
+                alert('请输入邮箱和密码');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 保存 token 和用户信息
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // 更新UI
+                    updateAuthUI(data.user);
+
+                    // 关闭模态框
+                    closeModal('login');
+
+                    alert(`欢迎回来，${data.user.username}！`);
+                } else {
+                    alert(data.message || '登录失败');
+                }
+            } catch (error) {
+                console.error('登录请求失败:', error);
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 处理注册
+        async function handleRegister(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!username || !email || !password || !confirmPassword) {
+                alert('请填写所有字段');
+                return;
+            }
+            if (password.length < 6) {
+                alert('密码长度至少为6位');
+                return;
+            }
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 注册成功，自动登录
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    updateAuthUI(data.user);
+                    closeModal('register');
+                    alert(`注册成功！欢迎加入蘑法识界，${data.user.username}！`);
+                } else {
+                    alert(data.message || '注册失败');
+                }
+            } catch (error) {
+                console.error('注册请求失败:', error);
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            // 如果摄像头开启则关闭
+            if (isRealtimeActive) {
+                stopRealtime();
+            }
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            showAuthButtons();
+            alert('已成功退出登录');
+        }
+
+        // 保存历史记录到后端
+        async function saveHistoryToServer(historyData) {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/history`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(historyData)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // 保存成功后重新加载历史列表
+                    loadHistory();
+                } else {
+                    console.error('保存历史失败:', data.message);
+                }
+            } catch (error) {
+                console.error('保存历史请求失败:', error);
+            }
+        }
+
+        // 加载用户的历史记录
+        async function loadHistory() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderHistoryList(data.history);
+                }
+            } catch (error) {
+                console.error('加载历史失败:', error);
+            }
+        }
+
+        // 渲染历史列表
+        function renderHistoryList(history) {
+            if (!history || history.length === 0) {
+                historyList.innerHTML = `
+                    <div class="history-empty">
+                        <i class="fas fa-camera-retro"></i>
+                        <p>暂无识别记录，快去识别蘑菇吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            history.forEach(item => {
+                const date = new Date(item.created_at);
+                const timeStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+                const confidencePercent = Math.round(item.confidence * 100);
+                html += `
+                    <div class="history-item" onclick="viewHistoryDetail('${item.mushroom_name}', ${item.confidence}, '${item.image_url}')">
+                        <div class="history-thumb">
+                            <img src="${item.image_url}" alt="${item.mushroom_name}">
+                        </div>
+                        <div class="history-info">
+                            <div class="history-name">
+                                ${item.mushroom_name}
+                                <span class="history-confidence">${confidencePercent}%</span>
+                            </div>
+                            <div class="history-time">
+                                <i class="far fa-clock"></i> ${timeStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            historyList.innerHTML = html;
+        }
+
+        // 点击历史项查看详情（复用现有识别结果显示）
+        function viewHistoryDetail(name, confidence, imageUrl) {
+            // 设置预览图
+            imagePreview.src = imageUrl;
+            previewArea.style.display = 'flex';
+
+            // 查找数据库中的蘑菇信息
+            const mushroom = mushroomDatabase.find(m => m.name === name);
+            if (mushroom) {
+                mushroomName.textContent = mushroom.name;
+                confidence.textContent = `${Math.round(confidence * 100)}% 匹配度`;
+                mushroomDescription.textContent = mushroom.description;
+                edibility.textContent = mushroom.edibility;
+                habitat.textContent = mushroom.habitat;
+                season.textContent = mushroom.season;
+                distribution.textContent = mushroom.distribution;
+                warningText.textContent = mushroom.warning;
+            } else {
+                mushroomName.textContent = name;
+                confidence.textContent = `${Math.round(confidence * 100)}% 匹配度`;
+                mushroomDescription.textContent = "该蘑菇暂未收录详细资料，请谨慎对待。";
+                edibility.textContent = "未知";
+                habitat.textContent = "未知";
+                season.textContent = "未知";
+                distribution.textContent = "未知";
+                warningText.textContent = "注意：蘑菇识别仅供学习参考，切勿仅凭识别结果食用野生蘑菇。";
+            }
+
+            resultArea.style.display = 'block';
+            // 滚动到结果区域
+            resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 清空历史
+        async function clearHistory() {
+            if (!confirm('确定要清空所有识别历史吗？')) return;
+
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/history`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderHistoryList([]);
+                    alert('历史记录已清空');
+                }
+            } catch (error) {
+                console.error('清空历史失败:', error);
+            }
+        }
+        // 显示登录/注册按钮，隐藏用户信息
+        function showAuthButtons() {
+            authButtons.style.display = 'flex';
+            userInfo.style.display = 'none';
+            // 隐藏历史卡片
+            historyCard.style.display = 'none';
+        }
+        // 隐藏登录/注册按钮，显示用户信息
+        function updateAuthUI(user) {
+            authButtons.style.display = 'none';
+            userInfo.style.display = 'flex';
+            userName.textContent = user.username;
+            userAvatar.textContent = user.username.charAt(0).toUpperCase();
+            // 显示历史卡片并加载历史
+            historyCard.style.display = 'block';
+            loadHistory();
+        }
+
+
+        // 验证 token 是否仍然有效
+        async function verifyToken() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    // token 无效，清除本地存储
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    showAuthButtons();
+                } else {
+                    // 可选：更新本地存储的用户信息
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
+            } catch (error) {
+                console.error('Token 验证失败:', error);
+            }
+        }
+
+        // 处理图片上传
+        function handleImageUpload(file) {
+            // 验证文件类型
+            if (!file.type.match('image.*')) {
+                alert('请选择图片文件（JPG、PNG等格式）');
+                return;
+            }
+
+            // 验证文件大小（最大5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                alert('图片大小不能超过5MB');
+                return;
+            }
+
+            // 预览图片
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewArea.style.display = 'flex';
+                resultArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 最终版：和你现在的后端 100% 匹配
+        async function identifyMushroom() {
+            if (!imagePreview.src || imagePreview.src === window.location.href) {
+                alert('请先上传或选择一张图片');
+                return;
+            }
+
+            loading.style.display = 'block';
+            resultArea.style.display = 'none';
+
+            try {
+                let file;
+                if (fileInput.files.length > 0) {
+                    file = fileInput.files[0];
+                } else {
+                    const response = await fetch(imagePreview.src);
+                    const blob = await response.blob();
+                    file = new File([blob], "demo.jpg", { type: blob.type });
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // 调用你的 Flask 后端（和你代码一致）
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 从你的知识库匹配结果
+                    const mushroom = mushroomDatabase.find(m => m.name === data.class_name);
+
+                    if (mushroom) {
+                        mushroomName.textContent = mushroom.name;
+                        confidence.textContent = `${Math.round(data.confidence * 100)}% 匹配度`;
+                        mushroomDescription.textContent = mushroom.description;
+                        edibility.textContent = mushroom.edibility;
+                        habitat.textContent = mushroom.habitat;
+                        season.textContent = mushroom.season;
+                        distribution.textContent = mushroom.distribution;
+                        warningText.textContent = mushroom.warning;
+                    } else {
+                        // 不在库里的蘑菇也能正常显示
+                        mushroomName.textContent = data.class_name;
+                        confidence.textContent = `${Math.round(data.confidence * 100)}% 匹配度`;
+                        mushroomDescription.textContent = "该蘑菇暂未收录详细资料，请谨慎对待。";
+                        edibility.textContent = "未知";
+                        habitat.textContent = "未知";
+                        season.textContent = "未知";
+                        distribution.textContent = "未知";
+                        warningText.textContent = "注意：蘑菇识别仅供学习参考，切勿仅凭识别结果食用野生蘑菇。";
+                    }
+
+                    resultArea.style.display = 'block';
+                    // 如果用户已登录，保存识别历史
+                    const token = localStorage.getItem('token');
+                    if (token && data.class_name) {
+                        const historyData = {
+                            mushroom_name: data.class_name,
+                            confidence: data.confidence,
+                            image_url: imagePreview.src  // 发送当前预览图的 base64 或 URL
+                        };
+                        saveHistoryToServer(historyData);
+                    }
+                } else {
+                    alert('识别失败：' + data.error);
+                }
+            } catch (error) {
+                console.error('请求错误:', error);
+                alert('网络错误，请确保后端服务已启动（localhost:5000）');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 生成蘑菇知识库
+        function generateMushroomGallery() {
+            mushroomGallery.innerHTML = '';
+
+            mushroomDatabase.forEach(mushroom => {
+                // 创建蘑菇项目
+                const mushroomItem = document.createElement('div');
+                mushroomItem.className = 'mushroom-item';
+
+                // 设置可食用性标签颜色
+                let edibilityClass = '';
+                if (mushroom.edibility === "可食用") {
+                    edibilityClass = 'edible';
+                } else if (mushroom.edibility === "有毒" || mushroom.edibility === "剧毒") {
+                    edibilityClass = 'toxic';
+                } else {
+                    edibilityClass = 'medicinal';
+                }
+
+                mushroomItem.innerHTML = `
+                    <div class="mushroom-img">
+                        <img src="${mushroom.image}" alt="${mushroom.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="mushroom-info">
+                        <h3>${mushroom.name}</h3>
+                        <p><strong>学名:</strong> ${mushroom.scientificName}</p>
+                        <p><strong>可食用性:</strong> <span class="${edibilityClass}">${mushroom.edibility}</span></p>
+                        <p><strong>生长环境:</strong> ${mushroom.habitat}</p>
+                        <p><strong>季节:</strong> ${mushroom.season}</p>
+                        <button class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="showMushroomDetails(${mushroom.id})">
+                            <i class="fas fa-info-circle"></i> 查看详情
+                        </button>
+                    </div>
+                `;
+
+                mushroomGallery.appendChild(mushroomItem);
+            });
+
+            // 添加CSS样式
+            const style = document.createElement('style');
+            style.textContent = `
+                .edible { color: #4CAF50; font-weight: bold; }
+                .toxic { color: #f44336; font-weight: bold; }
+                .medicinal { color: #FF9800; font-weight: bold; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // 显示蘑菇详情（弹出模态框版本）
+        function showMushroomDetails(id) {
+            const mushroom = mushroomDatabase.find(m => m.id === id);
+            if (!mushroom) return;
+
+            // 根据可食用性设置样式
+            let edibilityClass = '';
+            if (mushroom.edibility === '可食') edibilityClass = 'edible';
+            else if (mushroom.edibility.includes('毒')) edibilityClass = 'toxic';
+            else edibilityClass = 'medicinal';
+
+            // 构建详情HTML
+            const detailHtml = `
+                <h3 style="color:#FF9800; margin-bottom:20px;">${mushroom.name}</h3>
+                <div class="recipe-detail-img">
+                    <img src="${mushroom.image}" alt="${mushroom.name}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div class="recipe-detail-meta">
+                    <div><i class="fas fa-tag"></i> 学名: ${mushroom.scientificName}</div>
+                    <div><span class="${edibilityClass}"><i class="fas fa-utensils"></i> ${mushroom.edibility}</span></div>
+                </div>
+                <p style="margin-bottom:20px; line-height:1.7;"><strong>📖 详细描述：</strong><br>${mushroom.description}</p>
+
+                <div class="mushroom-details" style="grid-template-columns:1fr 1fr; margin-top:0;">
+                    <div class="detail-item">
+                        <h4>🌿 生长环境</h4>
+                        <p>${mushroom.habitat}</p>
+                    </div>
+                    <div class="detail-item">
+                        <h4>📅 季节</h4>
+                        <p>${mushroom.season}</p>
+                    </div>
+                    <div class="detail-item">
+                        <h4>📍 分布区域</h4>
+                        <p>${mushroom.distribution}</p>
+                    </div>
+                </div>
+
+                <div class="warning" style="margin-top:25px;">
+                    <h4><i class="fas fa-exclamation-triangle"></i> 安全警告</h4>
+                    <p>${mushroom.warning}</p>
+                </div>
+
+                <button class="btn modal-btn" style="margin-top:25px;" onclick="document.getElementById('mushroomDetailModal').style.display='none'">
+                    <i class="fas fa-times"></i> 关闭
+                </button>
+            `;
+
+            // 填充并显示模态框
+            document.getElementById('mushroomDetailContent').innerHTML = detailHtml;
+            document.getElementById('mushroomDetailModal').style.display = 'flex';
+        }
+
+        // 生成食谱库
+        function generateRecipeGallery() {
+            recipeGallery.innerHTML = '';
+
+            recipeDatabase.forEach(recipe => {
+                // 创建食谱项目
+                const recipeItem = document.createElement('div');
+                recipeItem.className = 'recipe-item';
+                recipeItem.setAttribute('data-tags', recipe.tags.join(','));
+
+                recipeItem.innerHTML = `
+                    <div class="recipe-img">
+                        <img src="${recipe.image}" alt="${recipe.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="recipe-info">
+                        <h3>${recipe.name}</h3>
+                        <div class="recipe-meta">
+                            <span><i class="far fa-clock"></i> 准备: ${recipe.prepTime}</span>
+                            <span><i class="fas fa-fire"></i> 烹饪: ${recipe.cookTime}</span>
+                            <span><i class="fas fa-utensil-spoon"></i> ${recipe.difficulty}</span>
+                        </div>
+                        <p class="recipe-description">${recipe.description}</p>
+                        <div class="recipe-tags">
+                            ${recipe.tags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+                        </div>
+                        <button class="btn view-recipe-btn" onclick="showRecipeDetails(${recipe.id})">
+                            <i class="fas fa-book-open"></i> 查看食谱
+                        </button>
+                    </div>
+                `;
+
+                recipeGallery.appendChild(recipeItem);
+            });
+        }
+
+        // 过滤食谱（修复版）
+        function filterRecipes(filter) {
+          const recipeItems = document.querySelectorAll('.recipe-item');
+
+          recipeItems.forEach(item => {
+            // 全部显示
+            if (filter === 'all') {
+              item.style.display = 'block';
+              return;
+            }
+
+            // 英文 filter 对应中文标签
+            const tagMap = {
+              easy: '简单易做',
+              soup: '汤类',
+              stirfry: '炒菜',
+              vegetarian: '素食'
+            };
+
+            const targetTag = tagMap[filter];
+            const tags = item.getAttribute('data-tags').split(',');
+
+            // 匹配就显示
+            if (tags.includes(targetTag)) {
+              item.style.display = 'block';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        }
+
+        // 显示食谱详情
+        function showRecipeDetails(id) {
+            const recipe = recipeDatabase.find(r => r.id === id);
+
+            if (recipe) {
+                // 生成食谱详情HTML
+                recipeDetailContent.innerHTML = `
+                    <h3>${recipe.name}</h3>
+                    <div class="recipe-detail-img">
+                        <img src="${recipe.image}" alt="${recipe.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="recipe-detail-meta">
+                        <div><i class="far fa-clock"></i> 准备时间: ${recipe.prepTime}</div>
+                        <div><i class="fas fa-fire"></i> 烹饪时间: ${recipe.cookTime}</div>
+                        <div><i class="fas fa-utensil-spoon"></i> 难度: ${recipe.difficulty}</div>
+                        <div><i class="fas fa-user-friends"></i> 份量: ${recipe.servings}</div>
+                    </div>
+                    <p style="margin-bottom: 20px;">${recipe.description}</p>
+                    <div class="recipe-tags">
+                        ${recipe.tags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="recipe-section">
+                        <h4><i class="fas fa-carrot"></i> 所需食材</h4>
+                        <ul class="ingredients-list">
+                            ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="recipe-section">
+                        <h4><i class="fas fa-list-ol"></i> 制作步骤</h4>
+                        <ol class="steps-list">
+                            ${recipe.steps.map((step, index) => `
+                                <li>
+                                    <span class="step-number">${index + 1}</span>
+                                    ${step}
+                                </li>
+                            `).join('')}
+                        </ol>
+                    </div>
+                    <div class="tips">
+                        <h4><i class="fas fa-lightbulb"></i> 烹饪小贴士</h4>
+                        <p>${recipe.tips}</p>
+                    </div>
+                    <button class="btn modal-btn" style="margin-top: 25px;" onclick="closeModal('recipe')">
+                        <i class="fas fa-times"></i> 关闭
+                    </button>
+                `;
+
+                // 打开食谱模态框
+                openModal('recipe');
+            }
+        }
+        // 开启摄像头
+        async function startRealtime() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }  // 优先后置摄像头
+                });
+                videoElement.srcObject = videoStream;
+                videoContainer.style.display = 'block';
+                previewArea.style.display = 'none';   // 隐藏图片预览区
+                resultArea.style.display = 'none';    // 隐藏上次结果
+                isRealtimeActive = true;
+            } catch (error) {
+                console.error('摄像头开启失败:', error);
+                alert('无法访问摄像头，请检查权限设置');
+            }
+        }
+
+        // 停止摄像头
+        function stopRealtime() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            videoElement.srcObject = null;
+            videoContainer.style.display = 'none';
+            isRealtimeActive = false;
+        }
+
+        // 从视频流拍照并识别
+        async function captureFromVideo() {
+            if (!videoStream) {
+                alert('摄像头未开启');
+                return;
+            }
+
+            // 将视频当前帧绘制到 canvas 上
+            const context = videoCanvas.getContext('2d');
+            videoCanvas.width = videoElement.videoWidth;
+            videoCanvas.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0, videoCanvas.width, videoCanvas.height);
+
+            // 从 canvas 获取 blob 用于识别
+            const blob = await new Promise(resolve => videoCanvas.toBlob(resolve, 'image/jpeg', 0.9));
+            const file = new File([blob], "camera_capture.jpg", { type: 'image/jpeg' });
+
+            // 在预览区显示捕获的图片
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                previewArea.style.display = 'flex';
+            };
+            reader.readAsDataURL(blob);
+
+            // 模拟文件选择，然后调用识别函数
+            // 直接调用识别逻辑（复用现有 handleImageUpload 之后的流程）
+            await identifyCapturedImage(file);
+        }
+
+        // 识别捕获的图片（复用 identifyMushroom 中的核心部分）
+        async function identifyCapturedImage(file) {
+            loading.style.display = 'block';
+            resultArea.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const mushroom = mushroomDatabase.find(m => m.name === data.class_name);
+                    if (mushroom) {
+                        mushroomName.textContent = mushroom.name;
+                        confidence.textContent = `${Math.round(data.confidence * 100)}% 匹配度`;
+                        mushroomDescription.textContent = mushroom.description;
+                        edibility.textContent = mushroom.edibility;
+                        habitat.textContent = mushroom.habitat;
+                        season.textContent = mushroom.season;
+                        distribution.textContent = mushroom.distribution;
+                        warningText.textContent = mushroom.warning;
+                    } else {
+                        mushroomName.textContent = data.class_name;
+                        confidence.textContent = `${Math.round(data.confidence * 100)}% 匹配度`;
+                        mushroomDescription.textContent = "该蘑菇暂未收录详细资料，请谨慎对待。";
+                        edibility.textContent = "未知";
+                        habitat.textContent = "未知";
+                        season.textContent = "未知";
+                        distribution.textContent = "未知";
+                        warningText.textContent = "注意：蘑菇识别仅供学习参考，切勿仅凭识别结果食用野生蘑菇。";
+                    }
+
+                    resultArea.style.display = 'block';
+
+                    // 保存历史（如果已登录）
+                    const token = localStorage.getItem('token');
+                    if (token && data.class_name) {
+                        const historyData = {
+                            mushroom_name: data.class_name,
+                            confidence: data.confidence,
+                            image_url: imagePreview.src
+                        };
+                        saveHistoryToServer(historyData);
+                    }
+                } else {
+                    alert('识别失败：' + data.error);
+                }
+            } catch (error) {
+                console.error('请求错误:', error);
+                alert('网络错误，请确保后端服务已启动');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

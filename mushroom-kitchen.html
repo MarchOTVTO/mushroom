@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蘑法厨房 - 蘑菇食谱大全</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 保留所有现有样式不变，只添加新的分类筛选样式 */
+        
+        /* 分类筛选器容器 */
+        .filter-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            margin-bottom: 30px;
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0f2e9;
+        }
+        
+        .filter-header h3 {
+            color: #FF9800;
+            font-size: 1.4rem;
+        }
+        
+        .clear-filters {
+            background: #f0f7f4;
+            color: #4CAF50;
+            border: 1px solid #c5e1a5;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .clear-filters:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .filter-groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .filter-group {
+            margin-bottom: 10px;
+        }
+        
+        .filter-group-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2d4a3a;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group-title i {
+            color: #FF9800;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-checkbox {
+            display: none;
+        }
+        
+        .filter-label {
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .filter-label:hover {
+            background-color: #e8f5e9;
+            transform: translateY(-2px);
+        }
+        
+        .filter-checkbox:checked + .filter-label {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .filter-checkbox:checked + .filter-label .checkbox-icon {
+            color: white;
+        }
+        
+        .checkbox-icon {
+            color: #4CAF50;
+            font-size: 0.8rem;
+        }
+        
+        .selected-filters {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0f2e9;
+        }
+        
+        .selected-filters h4 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #2d4a3a;
+        }
+        
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .selected-tag {
+            background-color: #FF9800;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .remove-tag {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 现有样式保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7f4;
+            background-image: linear-gradient(to bottom right, #e9f5eb, #d4ede1);
+            color: #2d4a3a;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .mushroom-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="30" r="25" fill="%234CAF50"/><ellipse cx="50" cy="70" rx="30" ry="20" fill="%23FF9800"/></svg>');
+            background-size: 120px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 头部区域 */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(139, 195, 74, 0.3);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 3.5rem;
+            color: #FF9800;
+            filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.4));
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(to right, #FF9800, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+        
+        .back-btn {
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            text-decoration: none;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+        }
+        
+        /* 搜索区域 */
+        .search-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            margin-bottom: 40px;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #c5e1a5;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        
+        .search-btn {
+            background: linear-gradient(to right, #FF9800, #FFB74D);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+        
+        /* 食谱图库 */
+        .recipe-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .recipe-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+        }
+        
+        .recipe-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .recipe-img {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background-color: #ffecb3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .recipe-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .recipe-info {
+            padding: 25px;
+        }
+        
+        .recipe-info h3 {
+            color: #FF9800;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .recipe-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .recipe-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .recipe-description {
+            margin-bottom: 20px;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .recipe-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .recipe-tag {
+            background-color: #e8f5e9;
+            color: #2d4a3a;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+        
+        .mushroom-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .mushroom-tag {
+            background-color: #ffecb3;
+            color: #FF9800;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .view-recipe-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        /* 食谱详情模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #FF9800;
+        }
+        
+        .modal h3 {
+            color: #FF9800;
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        
+        .recipe-detail-img {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background-color: #ffecb3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .recipe-detail-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .recipe-detail-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .recipe-detail-meta div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        .recipe-section {
+            margin-bottom: 25px;
+        }
+        
+        .recipe-section h4 {
+            color: #FF9800;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ingredients-list, .steps-list {
+            padding-left: 20px;
+        }
+        
+        .ingredients-list li, .steps-list li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .steps-list li {
+            margin-bottom: 15px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background-color: #FF9800;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .tips {
+            background-color: rgba(76, 175, 80, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+            margin-top: 20px;
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            color: #4CAF50;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(139, 195, 74, 0.3);
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(139, 195, 74, 0.3);
+            border-radius: 50%;
+            border-top-color: #FF9800;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .recipe-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-groups {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 漂浮动画 */
+        .fungus-animation {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            opacity: 0.3;
+            z-index: -1;
+            font-size: 2rem;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        /* 食谱统计 */
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            color: #FF9800;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #4CAF50;
+            font-size: 1rem;
+        }
+        
+        /* 特色食谱 */
+        .featured-recipes {
+            margin-bottom: 40px;
+        }
+        
+        .featured-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .featured-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .featured-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(139, 195, 74, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .featured-img {
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+            background-color: #ffecb3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .featured-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .featured-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .featured-content h3 {
+            color: #FF9800;
+            margin-bottom: 10px;
+        }
+        
+        .featured-tag {
+            background-color: #FF9800;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            margin-right: 8px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        /* 蘑菇搜索提示 */
+        .mushroom-search-tip {
+            background-color: rgba(76, 175, 80, 0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #2d4a3a;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .mushroom-search-tip strong {
+            color: #FF9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="mushroom-bg"></div>
+    
+    <!-- 漂浮的蘑菇动画 -->
+    <div class="fungus-animation" style="top:10%; left:5%; animation: float 6s ease-in-out infinite;">🍄</div>
+    <div class="fungus-animation" style="top:20%; right:8%; animation: float 8s ease-in-out infinite 1s;">🍄</div>
+    <div class="fungus-animation" style="bottom:30%; left:8%; animation: float 7s ease-in-out infinite 0.5s;">🍄</div>
+    <div class="fungus-animation" style="top:60%; right:5%; animation: float 9s ease-in-out infinite 0.2s;">🍳</div>
+    
+    <div class="container">
+        <!-- 头部区域 -->
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-utensils logo-icon"></i>
+                <div>
+                    <h1>蘑法厨房</h1>
+                    <p style="color: #4CAF50; margin-top: 5px;">探索蘑菇美食的无限可能，从家常菜到高级料理</p>
+                </div>
+            </div>
+            <a href="mushroom.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> 返回识别局
+            </a>
+        </div>
+        
+        <!-- 食谱统计 -->
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number" id="totalRecipes">0</div>
+                <div class="stat-label">总食谱数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="easyRecipes">0</div>
+                <div class="stat-label">简单食谱</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="vegetarianRecipes">0</div>
+                <div class="stat-label">素食食谱</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="mushroomTypesCount">0</div>
+                <div class="stat-label">蘑菇种类</div>
+            </div>
+        </div>
+        
+        <!-- 特色食谱推荐 -->
+        <section class="featured-recipes">
+            <div class="featured-header">
+                <h2><i class="fas fa-star"></i> 本周特色食谱</h2>
+                <p style="color: #4CAF50;">精选最受欢迎的蘑菇食谱</p>
+            </div>
+            
+            <div class="featured-gallery" id="featuredRecipes">
+                <!-- 特色食谱将通过JavaScript动态生成 -->
+            </div>
+        </section>
+        
+        <!-- 搜索和筛选区域 -->
+        <section class="search-section">
+            <h2><i class="fas fa-search"></i> 搜索食谱</h2>
+            <p>通过名称、类型或食材快速查找您感兴趣的蘑菇食谱</p>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="输入食谱名称、蘑菇种类或关键词进行搜索...">
+                <button class="search-btn" id="searchBtn">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
+            </div>
+            
+            <div class="mushroom-search-tip">
+                <i class="fas fa-lightbulb"></i> <strong>搜索提示：</strong> 您可以搜索蘑菇种类，如"香菇"、"金针菇"、"杏鲍菇"、"口蘑"、"平菇"、"牛肝菌"、"松茸"、"鸡枞菌"、"羊肚菌"等，查找使用该蘑菇的食谱。
+            </div>
+        </section>
+        
+        <!-- 新的多选分类筛选器 -->
+        <div class="filter-container">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> 分类筛选</h3>
+                <button class="clear-filters" id="clearFilters">
+                    <i class="fas fa-times"></i> 清除筛选
+                </button>
+            </div>
+            
+            <div class="filter-groups">
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <i class="fas fa-utensils"></i> 菜品类型
+                    </div>
+                    <div class="filter-options">
+                        <input type="checkbox" class="filter-checkbox" id="category-soup" value="汤类">
+                        <label class="filter-label" for="category-soup">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            汤类
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="category-stirfry" value="炒菜">
+                        <label class="filter-label" for="category-stirfry">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            炒菜
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="category-main" value="主食">
+                        <label class="filter-label" for="category-main">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            主食
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="category-appetizer" value="开胃菜">
+                        <label class="filter-label" for="category-appetizer">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            开胃菜
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="category-stew" value="炖菜">
+                        <label class="filter-label" for="category-stew">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            炖菜
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="category-steam" value="蒸菜">
+                        <label class="filter-label" for="category-steam">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            蒸菜
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <i class="fas fa-mushroom"></i> 蘑菇种类
+                    </div>
+                    <div class="filter-options">
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-xianggu" value="香菇">
+                        <label class="filter-label" for="mushroom-xianggu">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            香菇
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-jinzhengu" value="金针菇">
+                        <label class="filter-label" for="mushroom-jinzhengu">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            金针菇
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-xingbaogu" value="杏鲍菇">
+                        <label class="filter-label" for="mushroom-xingbaogu">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            杏鲍菇
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-koumo" value="口蘑">
+                        <label class="filter-label" for="mushroom-koumo">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            口蘑
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-pinggu" value="平菇">
+                        <label class="filter-label" for="mushroom-pinggu">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            平菇
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-niuganjun" value="牛肝菌">
+                        <label class="filter-label" for="mushroom-niuganjun">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            牛肝菌
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-songrong" value="松茸">
+                        <label class="filter-label" for="mushroom-songrong">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            松茸
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="mushroom-jizongjun" value="鸡枞菌">
+                        <label class="filter-label" for="mushroom-jizongjun">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            鸡枞菌
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-group-title">
+                        <i class="fas fa-tags"></i> 其他标签
+                    </div>
+                    <div class="filter-options">
+                        <input type="checkbox" class="filter-checkbox" id="tag-vegetarian" value="素食">
+                        <label class="filter-label" for="tag-vegetarian">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            素食
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="tag-easy" value="简单易做">
+                        <label class="filter-label" for="tag-easy">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            简单易做
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="tag-quick" value="快手菜">
+                        <label class="filter-label" for="tag-quick">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            快手菜
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="tag-homestyle" value="家常菜">
+                        <label class="filter-label" for="tag-homestyle">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            家常菜
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="tag-meat" value="肉类">
+                        <label class="filter-label" for="tag-meat">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            肉类
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="tag-seafood" value="海鲜">
+                        <label class="filter-label" for="tag-seafood">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            海鲜
+                        </label>
+                        
+                        <input type="checkbox" class="filter-checkbox" id="tag-healthy" value="健康">
+                        <label class="filter-label" for="tag-healthy">
+                            <span class="checkbox-icon"><i class="fas fa-check"></i></span>
+                            健康
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="selected-filters">
+                <h4>已选筛选条件：</h4>
+                <div class="selected-tags" id="selectedTags">
+                    <!-- 已选标签将在这里显示 -->
+                    <div class="selected-tag" style="background-color: #f1f8e9; color: #2d4a3a;">
+                        无筛选条件
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 食谱图库 -->
+        <section id="recipeList">
+            <h2><i class="fas fa-th-large"></i> 蘑法食谱库</h2>
+            <p>点击任意食谱卡片查看详细做法</p>
+            
+            <!-- 加载动画 -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在加载蘑法食谱库...</p>
+            </div>
+            
+            <!-- 食谱列表将通过JavaScript动态生成 -->
+            <div class="recipe-gallery" id="recipeGallery"></div>
+        </section>
+        
+        <footer>
+            <p>蘑法识界厨房 &copy; 2023 | 探索蘑菇美食，享受健康生活</p>
+            <p>注意：蘑菇食谱仅供参考，请确保使用可食用蘑菇制作菜肴。</p>
+            <p>食谱来源：蘑法厨房团队 | 最后更新：2023年11月</p>
+        </footer>
+    </div>
+
+    <!-- 食谱详情模态框 -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeDetailModal">&times;</span>
+            <div id="detailContent">
+                <!-- 食谱详情将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 扩展的食谱数据库（每个菜谱都有明确的蘑菇种类标签，并添加独立的图片路径，格式为PNG）
+        const recipeDatabase = [
+            {
+                id: 1,
+                name: "奶油香菇汤",
+                description: "浓郁香滑的奶油香菇汤，简单易做，营养丰富，是秋冬季节的暖心佳品。",
+                prepTime: "15分钟",
+                cookTime: "30分钟",
+                difficulty: "简单",
+                servings: "4人份",
+                mushroomTypes: ["香菇"],
+                tags: ["汤类", "简单易做", "素食", "家常菜"],
+                icon: "🥣",
+                featured: true,
+                popularity: 95,
+                ingredients: [
+                    "500克新鲜香菇",
+                    "1个洋葱，切碎",
+                    "2瓣大蒜，切碎",
+                    "3杯蔬菜高汤",
+                    "1杯淡奶油",
+                    "2汤匙黄油",
+                    "2汤匙面粉",
+                    "盐和黑胡椒粉适量",
+                    "新鲜欧芹，装饰用"
+                ],
+                steps: [
+                    "将香菇清洗干净，切片备用。",
+                    "在一个大锅中，融化黄油，加入洋葱和大蒜，炒至透明。",
+                    "加入香菇，炒至香菇变软并释放出水分。",
+                    "撒上面粉，搅拌均匀，煮1-2分钟。",
+                    "慢慢加入蔬菜高汤，边加边搅拌，防止结块。",
+                    "煮沸后转小火，盖上锅盖煮15-20分钟。",
+                    "使用搅拌机将汤搅打成顺滑的糊状。",
+                    "放回锅中，加入淡奶油，用盐和黑胡椒粉调味。",
+                    "用小火加热，不要煮沸，煮5分钟即可。",
+                    "盛入碗中，用新鲜欧芹装饰后上桌。"
+                ],
+                tips: "可以使用干香菇泡发后制作，风味更浓郁。如果想减少热量，可以用牛奶代替部分奶油。",
+                image: "image/奶油香菇汤.png"
+            },
+            {
+                id: 2,
+                name: "蒜香口蘑炒肉片",
+                description: "简单快手的蒜香口蘑炒肉片，蘑菇鲜嫩多汁，蒜香浓郁，是一道绝佳的下饭菜。",
+                prepTime: "15分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["口蘑"],
+                tags: ["炒菜", "简单易做", "快手菜", "家常菜", "肉类"],
+                icon: "🍄",
+                featured: true,
+                popularity: 92,
+                ingredients: [
+                    "300克猪里脊肉，切片",
+                    "300克口蘑，切片",
+                    "4瓣大蒜，切片",
+                    "1个青椒，切块",
+                    "2汤匙生抽",
+                    "1汤匙蚝油",
+                    "1茶匙糖",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量",
+                    "少许芝麻油",
+                    "香菜，装饰用"
+                ],
+                steps: [
+                    "猪里脊肉切片，用生抽、料酒和淀粉腌制10分钟。",
+                    "口蘑清洗干净，切片备用。",
+                    "热锅加油，放入大蒜片，用中小火炒至金黄色，散发出香味。",
+                    "加入肉片快速滑炒至变色，盛出备用。",
+                    "锅中留底油，加入口蘑，转大火快速翻炒，直到蘑菇变软并释放出水分。",
+                    "加入青椒块，继续翻炒1-2分钟。",
+                    "将炒好的肉片倒回锅中，加入蚝油和糖调味。",
+                    "加入盐和胡椒粉调味，淋上少许芝麻油增加香气。",
+                    "装盘，用香菜装饰后即可上桌。"
+                ],
+                tips: "炒口蘑时要用大火快炒，以保持口蘑的鲜嫩口感。可以根据个人口味添加辣椒或花椒增加风味。",
+                image: "image/蒜香口蘑炒肉片.png"
+            },
+            {
+                id: 3,
+                name: "金针菇肥牛卷",
+                description: "金针菇肥牛卷，肥牛鲜嫩，金针菇爽脆，酱汁浓郁，是餐厅级别的美味。",
+                prepTime: "20分钟",
+                cookTime: "15分钟",
+                difficulty: "中等",
+                servings: "3-4人份",
+                mushroomTypes: ["金针菇"],
+                tags: ["炒菜", "家常菜", "肉类", "下饭菜"],
+                icon: "🍖",
+                featured: true,
+                popularity: 94,
+                ingredients: [
+                    "300克肥牛片",
+                    "200克金针菇，去根",
+                    "2汤匙生抽",
+                    "1汤匙蚝油",
+                    "1汤匙料酒",
+                    "1茶匙糖",
+                    "2瓣大蒜，切末",
+                    "1片姜，切末",
+                    "1汤匙淀粉",
+                    "2汤匙食用油",
+                    "青葱，切碎",
+                    "白芝麻，装饰用"
+                ],
+                steps: [
+                    "金针菇去根洗净，分成小束。",
+                    "用肥牛片将金针菇卷起来，用牙签固定。",
+                    "在一个小碗中，将生抽、蚝油、料酒、糖和少量水混合均匀，制成调味汁。",
+                    "热锅加油，将肥牛卷煎至两面金黄，取出备用。",
+                    "锅中留底油，加入大蒜和姜末爆香。",
+                    "倒入调味汁煮沸，加入肥牛卷。",
+                    "煮2-3分钟让肥牛卷入味。",
+                    "用水淀粉勾芡，使酱汁浓稠。",
+                    "撒上青葱碎和白芝麻即可。"
+                ],
+                tips: "肥牛卷不要煎太久，以免肉质变老。可以用烤箱烤制，更加健康。",
+                image: "image/金针菇肥牛卷.png"
+            },
+            {
+                id: 4,
+                name: "杏鲍菇炒鸡丁",
+                description: "杏鲍菇炒鸡丁，鸡肉嫩滑，杏鲍菇Q弹有嚼劲，味道鲜美，营养丰富。",
+                prepTime: "20分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["杏鲍菇"],
+                tags: ["炒菜", "家常菜", "肉类", "快手菜"],
+                icon: "🍗",
+                featured: false,
+                popularity: 88,
+                ingredients: [
+                    "300克鸡胸肉，切丁",
+                    "2个杏鲍菇，切丁",
+                    "1个青椒，切丁",
+                    "1个红椒，切丁",
+                    "2瓣大蒜，切片",
+                    "2汤匙生抽",
+                    "1汤匙料酒",
+                    "1茶匙淀粉",
+                    "1茶匙糖",
+                    "盐和胡椒粉适量",
+                    "2汤匙食用油"
+                ],
+                steps: [
+                    "鸡胸肉切丁，用生抽、料酒、淀粉和少许油腌制15分钟。",
+                    "杏鲍菇切丁，青红椒切丁备用。",
+                    "热锅加油，放入鸡丁快速滑炒至变色，盛出备用。",
+                    "锅中留底油，加入大蒜片爆香。",
+                    "加入杏鲍菇丁翻炒至变软，再加入青红椒丁翻炒均匀。",
+                    "将炒好的鸡丁倒回锅中，加入糖、盐和胡椒粉调味。",
+                    "快速翻炒均匀，让所有食材充分融合。",
+                    "装盘即可上桌。"
+                ],
+                tips: "杏鲍菇切丁后可以先用开水焯一下，去除菌菇的特殊气味。鸡丁腌制后更加嫩滑。",
+                image: "image/杏鲍菇炒鸡丁.png"
+            },
+            {
+                id: 5,
+                name: "香菇炖鸡",
+                description: "家常风味的香菇炖鸡，鸡肉鲜嫩，香菇吸收了汤汁的精华，是一道营养均衡的暖心菜肴。",
+                prepTime: "20分钟",
+                cookTime: "45分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["香菇"],
+                tags: ["炖菜", "家常菜", "肉类", "营养"],
+                icon: "🍗",
+                featured: true,
+                popularity: 90,
+                ingredients: [
+                    "800克鸡腿肉，切块",
+                    "150克干香菇，泡发",
+                    "1个洋葱，切块",
+                    "2个胡萝卜，切滚刀块",
+                    "3瓣大蒜，切片",
+                    "2汤匙生抽",
+                    "1汤匙老抽",
+                    "1汤匙料酒",
+                    "1汤匙蚝油",
+                    "1茶匙糖",
+                    "2杯水或鸡汤",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量",
+                    "青葱，切段"
+                ],
+                steps: [
+                    "鸡腿肉用盐和胡椒粉腌制15分钟。",
+                    "干香菇用温水泡发，泡发的水留用。",
+                    "热锅加油，将鸡肉煎至两面金黄，取出备用。",
+                    "用锅中余油炒香洋葱和大蒜，直到洋葱变透明。",
+                    "加入胡萝卜和泡发的香菇，翻炒3-4分钟。",
+                    "将鸡肉放回锅中，加入生抽、老抽、料酒、蚝油和糖，翻炒均匀。",
+                    "加入水或鸡汤（加入泡香菇的水），煮沸后转小火，盖上锅盖炖25-30分钟。",
+                    "尝味调整盐和胡椒粉，如果汤汁过多可以开大火收汁。",
+                    "装盘，撒上青葱段即可上桌。"
+                ],
+                tips: "使用干香菇能增加更浓郁的风味。泡香菇的水不要倒掉，里面有很多鲜味物质。",
+                image: "image/香菇炖鸡.png"
+            },
+            {
+                id: 6,
+                name: "金针菇豆腐汤",
+                description: "清淡爽口的金针菇豆腐汤，豆腐嫩滑，金针菇鲜美，简单快手，营养健康。",
+                prepTime: "10分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["金针菇"],
+                tags: ["汤类", "素食", "家常菜", "健康", "快手菜"],
+                icon: "🍲",
+                featured: false,
+                popularity: 85,
+                ingredients: [
+                    "1块嫩豆腐，切块",
+                    "150克金针菇，去根",
+                    "1个番茄，切块",
+                    "2杯蔬菜高汤或水",
+                    "1片姜，切丝",
+                    "2汤匙生抽",
+                    "1茶匙香油",
+                    "盐和胡椒粉适量",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "豆腐切块，金针菇去根洗净，番茄切块。",
+                    "锅中加入高汤或水，放入姜丝煮沸。",
+                    "加入番茄块煮2-3分钟。",
+                    "加入豆腐块和金针菇，轻轻推匀。",
+                    "煮5-7分钟，直到金针菇变软。",
+                    "加入生抽、盐和胡椒粉调味。",
+                    "淋上香油，撒上青葱碎即可。"
+                ],
+                tips: "使用嫩豆腐口感更好，但处理时要小心避免破碎。可以加入少许白胡椒粉增加风味。",
+                image: "image/金针菇豆腐汤.png"
+            },
+            {
+                id: 7,
+                name: "口蘑炒西兰花",
+                description: "健康素食，西兰花清脆，口蘑鲜美，颜色搭配漂亮，营养均衡。",
+                prepTime: "10分钟",
+                cookTime: "10分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["口蘑"],
+                tags: ["炒菜", "素食", "健康", "家常菜", "快手菜"],
+                icon: "🥦",
+                featured: false,
+                popularity: 82,
+                ingredients: [
+                    "1棵西兰花，切成小朵",
+                    "200克口蘑，切片",
+                    "2瓣大蒜，切片",
+                    "1汤匙生抽",
+                    "1茶匙蚝油",
+                    "1/2茶匙糖",
+                    "盐适量",
+                    "2汤匙食用油"
+                ],
+                steps: [
+                    "西兰花洗净切成小朵，口蘑切片，大蒜切片。",
+                    "锅中烧开水，加入少许盐，放入西兰花焯水1分钟，捞出沥干。",
+                    "热锅加油，放入大蒜片爆香。",
+                    "加入口蘑翻炒至变软。",
+                    "加入焯过水的西兰花，快速翻炒均匀。",
+                    "加入生抽、蚝油、糖和盐调味。",
+                    "翻炒均匀即可出锅。"
+                ],
+                tips: "西兰花焯水可以保持翠绿色泽和脆嫩口感。焯水时间不要过长，以免营养流失。",
+                image: "image/口蘑炒西兰花.png"
+            },
+            {
+                id: 8,
+                name: "香菇油菜",
+                description: "经典家常菜，香菇鲜美，油菜清甜，简单快手，营养美味。",
+                prepTime: "10分钟",
+                cookTime: "10分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["香菇"],
+                tags: ["炒菜", "素食", "家常菜", "快手菜", "健康"],
+                icon: "🥬",
+                featured: false,
+                popularity: 84,
+                ingredients: [
+                    "300克油菜，洗净",
+                    "150克香菇，切片",
+                    "2瓣大蒜，切片",
+                    "1汤匙生抽",
+                    "1茶匙蚝油",
+                    "1/2茶匙糖",
+                    "盐适量",
+                    "2汤匙食用油"
+                ],
+                steps: [
+                    "油菜洗净，香菇切片，大蒜切片。",
+                    "热锅加油，放入大蒜片爆香。",
+                    "加入香菇翻炒至变软。",
+                    "加入油菜，快速翻炒均匀。",
+                    "加入生抽、蚝油、糖和盐调味。",
+                    "翻炒至油菜变软即可出锅。"
+                ],
+                tips: "油菜不要炒太久，以保持脆嫩口感和翠绿色泽。可以加入少许蒜末增加香气。",
+                image: "image/香菇油菜.png"
+            },
+            {
+                id: 9,
+                name: "杏鲍菇烧肉",
+                description: "杏鲍菇烧肉，五花肉肥而不腻，杏鲍菇吸收了肉的鲜味，酱香浓郁，超级下饭。",
+                prepTime: "20分钟",
+                cookTime: "40分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["杏鲍菇"],
+                tags: ["炖菜", "家常菜", "肉类", "下饭菜"],
+                icon: "🍖",
+                featured: false,
+                popularity: 87,
+                ingredients: [
+                    "500克五花肉，切块",
+                    "2个杏鲍菇，切滚刀块",
+                    "2片姜，切片",
+                    "2瓣大蒜，切片",
+                    "2汤匙生抽",
+                    "1汤匙老抽",
+                    "1汤匙料酒",
+                    "1汤匙冰糖",
+                    "2杯水",
+                    "2汤匙食用油",
+                    "盐适量",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "五花肉切块，冷水下锅，加入料酒和姜片，煮沸后撇去浮沫，捞出洗净。",
+                    "热锅加油，放入冰糖炒至融化呈焦糖色。",
+                    "加入五花肉翻炒至上色。",
+                    "加入生抽、老抽、料酒，翻炒均匀。",
+                    "加入足够的水，没过五花肉，煮沸后转小火炖30分钟。",
+                    "加入杏鲍菇块，继续炖15分钟。",
+                    "炖至五花肉软烂，杏鲍菇入味，汤汁浓稠。",
+                    "加入盐调味，撒上青葱碎即可。"
+                ],
+                tips: "炒糖色时要用小火，避免炒焦变苦。杏鲍菇可以切大块一些，炖煮后口感更好。",
+                image: "image/杏鲍菇烧肉.png"
+            },
+            {
+                id: 10,
+                name: "金针菇蒸鸡翅",
+                description: "健康蒸菜，鸡翅嫩滑，金针菇鲜美，原汁原味，营养不流失。",
+                prepTime: "20分钟",
+                cookTime: "25分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["金针菇"],
+                tags: ["蒸菜", "家常菜", "健康", "简单易做"],
+                icon: "🍗",
+                featured: false,
+                popularity: 86,
+                ingredients: [
+                    "8个鸡翅中",
+                    "200克金针菇，去根",
+                    "2片姜，切丝",
+                    "2汤匙生抽",
+                    "1汤匙料酒",
+                    "1茶匙淀粉",
+                    "1茶匙糖",
+                    "盐和胡椒粉适量",
+                    "1汤匙香油",
+                    "青葱，切丝",
+                    "红椒，切丝（装饰用）"
+                ],
+                steps: [
+                    "鸡翅中洗净，用刀在两面划几刀，方便入味。",
+                    "用生抽、料酒、淀粉、糖、盐和胡椒粉腌制20分钟。",
+                    "金针菇去根洗净，铺在蒸盘底部。",
+                    "将腌制好的鸡翅放在金针菇上面，撒上姜丝。",
+                    "蒸锅水烧开后，放入蒸盘，大火蒸20-25分钟。",
+                    "取出后撒上青葱丝和红椒丝。",
+                    "淋上香油，即可上桌。"
+                ],
+                tips: "鸡翅腌制时间越长越入味。蒸制时间根据鸡翅大小调整，确保完全蒸熟。",
+                image: "image/金针菇蒸鸡翅.png"
+            },
+            {
+                id: 11,
+                name: "香菇炒饭",
+                description: "香气扑鼻的香菇炒饭，简单快速，营养均衡，是解决剩饭的最佳方式。",
+                prepTime: "10分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["香菇"],
+                tags: ["主食", "炒饭", "简单易做", "家常菜", "快手菜"],
+                icon: "🍚",
+                featured: false,
+                popularity: 83,
+                ingredients: [
+                    "3杯冷米饭",
+                    "150克香菇，切丁",
+                    "2个鸡蛋，打散",
+                    "1个洋葱，切丁",
+                    "2瓣大蒜，切碎",
+                    "1个胡萝卜，切丁",
+                    "1/2杯青豆",
+                    "2汤匙生抽",
+                    "1汤匙蚝油",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "热锅加油，倒入打散的鸡蛋，炒熟后取出备用。",
+                    "在同一个锅中，再加一点油，加入洋葱和大蒜炒香。",
+                    "加入胡萝卜丁和香菇丁，炒至香菇变软。",
+                    "加入青豆，继续翻炒2分钟。",
+                    "加入冷米饭，用锅铲将米饭压散，翻炒均匀。",
+                    "加入生抽、蚝油、盐和胡椒粉，继续翻炒至米饭均匀上色。",
+                    "将炒好的鸡蛋放回锅中，与米饭混合均匀。",
+                    "尝味调整调味，撒上青葱碎，翻炒均匀即可。",
+                    "盛入碗中，趁热食用。"
+                ],
+                tips: "使用冷米饭炒饭效果更好，因为冷米饭水分较少，不容易粘锅。干香菇泡发后切丁，风味更浓郁。",
+                image: "image/香菇炒饭.png"
+            },
+            {
+                id: 12,
+                name: "口蘑意大利面",
+                description: "经典的奶油口蘑意大利面，口蘑的鲜美与奶油的浓郁完美结合，是意大利餐厅级别的美味。",
+                prepTime: "15分钟",
+                cookTime: "25分钟",
+                difficulty: "中等",
+                servings: "3-4人份",
+                mushroomTypes: ["口蘑"],
+                tags: ["主食", "西餐", "奶油", "家常菜"],
+                icon: "🍝",
+                featured: false,
+                popularity: 88,
+                ingredients: [
+                    "400克意大利面（如扁面或通心粉）",
+                    "300克口蘑，切片",
+                    "1个洋葱，切碎",
+                    "3瓣大蒜，切碎",
+                    "1杯淡奶油",
+                    "1/2杯帕尔马干酪，磨碎",
+                    "2汤匙橄榄油",
+                    "2汤匙黄油",
+                    "1/4杯白葡萄酒（可选）",
+                    "盐和黑胡椒粉适量",
+                    "新鲜欧芹，切碎"
+                ],
+                steps: [
+                    "按照包装说明煮意大利面，煮至有嚼劲（al dente）。保留一杯煮面水。",
+                    "煮面同时，清洗口蘑并切片。",
+                    "在大平底锅中加热橄榄油和黄油，加入洋葱炒至透明。",
+                    "加入大蒜和口蘑，炒至口蘑变软并呈金黄色。",
+                    "如果使用白葡萄酒，此时加入，煮至酒精蒸发。",
+                    "加入淡奶油，煮沸后转小火煮5分钟。",
+                    "加入煮好的意大利面和帕尔马干酪，搅拌均匀。",
+                    "如果酱汁太稠，可以加入少量保留的煮面水调整稠度。",
+                    "用盐和大量黑胡椒粉调味。",
+                    "装盘，撒上新鲜欧芹和额外帕尔马干酪即可。"
+                ],
+                tips: "使用多种蘑菇混合可以增加风味的层次感。可以加入少许柠檬汁平衡奶油的油腻感。",
+                image: "image/口蘑意大利面.png"
+            },
+            {
+                id: 13,
+                name: "牛肝菌炖鸡汤",
+                description: "滋补养生的牛肝菌炖鸡汤，汤鲜味美，营养丰富，适合全家人享用。",
+                prepTime: "30分钟",
+                cookTime: "90分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["牛肝菌"],
+                tags: ["汤类", "炖菜", "家常菜", "营养", "滋补"],
+                icon: "🍲",
+                featured: true,
+                popularity: 91,
+                ingredients: [
+                    "1只鸡（约1.5公斤），切块",
+                    "50克干牛肝菌，泡发",
+                    "2片姜",
+                    "2汤匙料酒",
+                    "2升水",
+                    "盐适量",
+                    "枸杞，装饰用",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "鸡块冷水下锅，加入料酒，煮沸后撇去浮沫，捞出洗净。",
+                    "干牛肝菌用温水泡发30分钟，泡发的水留用。",
+                    "将鸡块放入炖锅中，加入姜片和足够的水。",
+                    "煮沸后转小火，炖1小时。",
+                    "加入泡发的牛肝菌和泡发的水（底部沉淀不要）。",
+                    "继续炖30分钟，直到鸡肉软烂。",
+                    "加入盐调味。",
+                    "撒上枸杞和青葱碎即可。"
+                ],
+                tips: "牛肝菌泡发的水不要倒掉，过滤后加入汤中能增加鲜味。炖汤时用小火慢炖，汤色更清亮。",
+                image: "image/牛肝菌炖鸡汤.png"
+            },
+            {
+                id: 14,
+                name: "松茸蒸蛋",
+                description: "高端精致的松茸蒸蛋，蒸蛋嫩滑如布丁，松茸香气独特，是宴客佳品。",
+                prepTime: "15分钟",
+                cookTime: "20分钟",
+                difficulty: "中等",
+                servings: "2-3人份",
+                mushroomTypes: ["松茸"],
+                tags: ["蒸菜", "高级料理", "家常菜", "营养"],
+                icon: "🥚",
+                featured: true,
+                popularity: 93,
+                ingredients: [
+                    "3个鸡蛋",
+                    "1.5杯鸡汤",
+                    "2朵新鲜松茸，切片",
+                    "1汤匙生抽",
+                    "1茶匙香油",
+                    "盐适量",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "鸡蛋打入碗中，轻轻打散，注意不要打出太多泡沫。",
+                    "加入鸡汤和少许盐，搅拌均匀。",
+                    "将蛋液过筛到蒸碗中，确保蛋液顺滑。",
+                    "在蛋液上放上松茸片。",
+                    "用保鲜膜盖住碗口，用牙签扎几个小孔。",
+                    "蒸锅水烧开后，放入蒸碗，用中小火蒸15-20分钟，直到蛋液凝固但仍有弹性。",
+                    "取出后淋上生抽和香油。",
+                    "撒上青葱碎即可。"
+                ],
+                tips: "蒸蛋时使用中小火，可以防止蛋液产生太多气孔，使蒸蛋更加细腻滑嫩。松茸不要放太多，以免掩盖蛋香。",
+                image: "image/松茸蒸蛋.png"
+            },
+            {
+                id: 15,
+                name: "平菇炒鸡蛋",
+                description: "简单快手菜，鸡蛋嫩滑，平菇鲜美，五分钟即可完成的营养早餐或便餐。",
+                prepTime: "5分钟",
+                cookTime: "5分钟",
+                difficulty: "简单",
+                servings: "2-3人份",
+                mushroomTypes: ["平菇"],
+                tags: ["炒菜", "快手菜", "早餐", "家常菜", "简单易做"],
+                icon: "🍳",
+                featured: false,
+                popularity: 84,
+                ingredients: [
+                    "4个鸡蛋",
+                    "200克平菇，撕成小朵",
+                    "1个青葱，切碎",
+                    "2汤匙食用油",
+                    "盐和胡椒粉适量"
+                ],
+                steps: [
+                    "鸡蛋打入碗中，加入盐和胡椒粉，打散均匀。",
+                    "平菇撕成小朵，洗净沥干。",
+                    "热锅加油，放入平菇翻炒至变软。",
+                    "将打散的鸡蛋液倒入锅中。",
+                    "用锅铲轻轻推动，让蛋液均匀凝固。",
+                    "当鸡蛋快要完全凝固时，撒上青葱碎。",
+                    "翻炒均匀即可出锅。"
+                ],
+                tips: "平菇含水量较高，炒之前可以挤一下水分。炒蛋时火不要太大，避免炒老。",
+                image: "image/平菇炒鸡蛋.png"
+            },
+            {
+                id: 16,
+                name: "鸡枞菌炒腊肉",
+                description: "农家风味菜肴，腊肉咸香，鸡枞菌鲜美，是下饭的绝佳搭配。",
+                prepTime: "15分钟",
+                cookTime: "15分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["鸡枞菌"],
+                tags: ["炒菜", "家常菜", "下饭菜", "农家菜"],
+                icon: "🥓",
+                featured: false,
+                popularity: 85,
+                ingredients: [
+                    "200克腊肉，切片",
+                    "150克鸡枞菌，撕成条",
+                    "2个青椒，切块",
+                    "2瓣大蒜，切片",
+                    "1汤匙生抽",
+                    "1茶匙糖",
+                    "1汤匙食用油",
+                    "青葱，切段"
+                ],
+                steps: [
+                    "腊肉切片，用温水浸泡10分钟去除部分咸味。",
+                    "鸡枞菌撕成条，青椒切块备用。",
+                    "热锅加少许油，放入腊肉片煸炒出油。",
+                    "加入大蒜片爆香。",
+                    "加入鸡枞菌翻炒至变软。",
+                    "加入青椒继续翻炒。",
+                    "加入生抽和糖调味，翻炒均匀。",
+                    "撒上青葱段，翻炒几下即可出锅。"
+                ],
+                tips: "腊肉本身有咸味，加盐要谨慎。如果腊肉较咸，可以延长浸泡时间。鸡枞菌不要炒太久，以保持脆嫩口感。",
+                image: "image/鸡枞菌炒腊肉.png"
+            },
+            {
+                id: 17,
+                name: "羊肚菌炖排骨",
+                description: "滋补养生的羊肚菌炖排骨，汤鲜味美，营养丰富，适合全家人享用。",
+                prepTime: "30分钟",
+                cookTime: "90分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["羊肚菌"],
+                tags: ["炖菜", "家常菜", "营养", "滋补"],
+                icon: "🍖",
+                featured: true,
+                popularity: 90,
+                ingredients: [
+                    "500克排骨，切块",
+                    "30克干羊肚菌，泡发",
+                    "2片姜",
+                    "2汤匙料酒",
+                    "2升水",
+                    "盐适量",
+                    "枸杞，装饰用",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "排骨冷水下锅，加入料酒，煮沸后撇去浮沫，捞出洗净。",
+                    "干羊肚菌用温水泡发30分钟，泡发的水留用。",
+                    "将排骨放入炖锅中，加入姜片和足够的水。",
+                    "煮沸后转小火，炖1小时。",
+                    "加入泡发的羊肚菌和泡发的水（底部沉淀不要）。",
+                    "继续炖30分钟，直到排骨软烂。",
+                    "加入盐调味。",
+                    "撒上枸杞和青葱碎即可。"
+                ],
+                tips: "羊肚菌泡发的水不要倒掉，过滤后加入汤中能增加鲜味。炖汤时用小火慢炖，汤色更清亮。",
+                image: "image/羊肚菌炖排骨.png"
+            },
+            {
+                id: 18,
+                name: "竹荪炖鸡汤",
+                description: "滋补养生的竹荪炖鸡汤，汤清味鲜，竹荪脆嫩，是传统滋补佳品。",
+                prepTime: "30分钟",
+                cookTime: "90分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["竹荪"],
+                tags: ["汤类", "炖菜", "家常菜", "营养", "滋补"],
+                icon: "🍲",
+                featured: false,
+                popularity: 89,
+                ingredients: [
+                    "1只鸡（约1.5公斤），切块",
+                    "30克干竹荪，泡发",
+                    "2片姜",
+                    "2汤匙料酒",
+                    "2升水",
+                    "盐适量",
+                    "枸杞，装饰用",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "鸡块冷水下锅，加入料酒，煮沸后撇去浮沫，捞出洗净。",
+                    "干竹荪用温水加少许盐泡发15分钟，去除菌盖和菌裙，切段。",
+                    "将鸡块放入炖锅中，加入姜片和足够的水。",
+                    "煮沸后转小火，炖1小时。",
+                    "加入竹荪段，继续炖20分钟。",
+                    "加入盐调味。",
+                    "撒上枸杞和青葱碎即可。"
+                ],
+                tips: "竹荪泡发时加少许盐可以去除异味。竹荪不要炖太久，以免失去脆嫩口感。",
+                image: "image/竹荪炖鸡汤.png"
+            },
+            {
+                id: 19,
+                name: "海鲜菇炒虾仁",
+                description: "鲜美可口的海鲜佳肴，虾仁Q弹，海鲜菇鲜嫩，口感丰富，营养全面。",
+                prepTime: "15分钟",
+                cookTime: "10分钟",
+                difficulty: "简单",
+                servings: "3-4人份",
+                mushroomTypes: ["海鲜菇"],
+                tags: ["炒菜", "海鲜", "家常菜", "快手菜"],
+                icon: "🍤",
+                featured: false,
+                popularity: 87,
+                ingredients: [
+                    "300克虾仁，去壳去肠",
+                    "200克海鲜菇，去根",
+                    "1个青椒，切块",
+                    "2瓣大蒜，切片",
+                    "1片姜，切片",
+                    "1汤匙料酒",
+                    "2汤匙生抽",
+                    "1茶匙糖",
+                    "1茶匙淀粉",
+                    "盐和胡椒粉适量",
+                    "2汤匙食用油",
+                    "青葱，切段"
+                ],
+                steps: [
+                    "虾仁用料酒、盐、胡椒粉和淀粉腌制10分钟。",
+                    "海鲜菇去根洗净，青椒切块备用。",
+                    "热锅加油，放入虾仁快速滑炒至变色，盛出备用。",
+                    "锅中留底油，放入大蒜和姜片爆香。",
+                    "加入海鲜菇翻炒至变软，再加入青椒翻炒均匀。",
+                    "将炒好的虾仁倒回锅中，加入生抽和糖调味。",
+                    "快速翻炒均匀，让所有食材充分融合。",
+                    "撒上青葱段，翻炒几下即可出锅。"
+                ],
+                tips: "虾仁不要炒太久，以免变老变硬。海鲜菇本身有海鲜风味，不需要太多调料。",
+                image: "image/海鲜菇炒虾仁.png"
+            },
+            {
+                id: 20,
+                name: "猴头菇炖排骨",
+                description: "滋补养胃的猴头菇炖排骨，猴头菇鲜美，排骨软烂，汤浓味美。",
+                prepTime: "30分钟",
+                cookTime: "90分钟",
+                difficulty: "中等",
+                servings: "4-5人份",
+                mushroomTypes: ["猴头菇"],
+                tags: ["炖菜", "家常菜", "营养", "滋补", "养胃"],
+                icon: "🍖",
+                featured: false,
+                popularity: 86,
+                ingredients: [
+                    "500克排骨，切块",
+                    "50克干猴头菇，泡发",
+                    "2片姜",
+                    "2汤匙料酒",
+                    "2升水",
+                    "盐适量",
+                    "枸杞，装饰用",
+                    "青葱，切碎"
+                ],
+                steps: [
+                    "排骨冷水下锅，加入料酒，煮沸后撇去浮沫，捞出洗净。",
+                    "干猴头菇用温水泡发2小时，期间换水2-3次，去除苦味，撕成小朵。",
+                    "将排骨放入炖锅中，加入姜片和足够的水。",
+                    "煮沸后转小火，炖1小时。",
+                    "加入猴头菇，继续炖30分钟。",
+                    "加入盐调味。",
+                    "撒上枸杞和青葱碎即可。"
+                ],
+                tips: "猴头菇泡发时间要足够，并多次换水，以去除苦味。炖汤时用小火慢炖，汤色更清亮。",
+                image: "image/猴头菇炖排骨.png"
+            }
+        ];
+
+        // DOM元素
+        const recipeGallery = document.getElementById('recipeGallery');
+        const featuredRecipes = document.getElementById('featuredRecipes');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const detailModal = document.getElementById('detailModal');
+        const closeDetailModal = document.getElementById('closeDetailModal');
+        const detailContent = document.getElementById('detailContent');
+        
+        // 筛选器元素
+        const filterCheckboxes = document.querySelectorAll('.filter-checkbox');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const selectedTagsContainer = document.getElementById('selectedTags');
+        
+        // 统计元素
+        const totalRecipes = document.getElementById('totalRecipes');
+        const easyRecipes = document.getElementById('easyRecipes');
+        const vegetarianRecipes = document.getElementById('vegetarianRecipes');
+        const mushroomTypesCount = document.getElementById('mushroomTypesCount');
+        
+        // 当前过滤状态
+        let currentFilters = {
+            category: [],  // 菜品类型
+            mushroom: [],  // 蘑菇种类
+            tag: []        // 其他标签
+        };
+        let currentSearch = '';
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 显示加载动画
+            loading.style.display = 'block';
+            
+            // 模拟数据加载延迟
+            setTimeout(() => {
+                // 更新统计数据
+                updateStats();
+                
+                // 生成特色食谱
+                generateFeaturedRecipes();
+                
+                // 生成食谱图库
+                generateRecipeGallery();
+                
+                // 更新已选标签显示
+                updateSelectedTags();
+                
+                // 隐藏加载动画
+                loading.style.display = 'none';
+            }, 800);
+            
+            // 绑定搜索事件
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // 绑定筛选器事件
+            filterCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const value = this.value;
+                    const id = this.id;
+                    
+                    // 根据ID判断筛选器类型
+                    if (id.startsWith('category-')) {
+                        updateFilter('category', value, this.checked);
+                    } else if (id.startsWith('mushroom-')) {
+                        updateFilter('mushroom', value, this.checked);
+                    } else if (id.startsWith('tag-')) {
+                        updateFilter('tag', value, this.checked);
+                    }
+                    
+                    // 更新已选标签显示
+                    updateSelectedTags();
+                    
+                    // 重新筛选食谱
+                    filterRecipes();
+                });
+            });
+            
+            // 绑定清除筛选按钮事件
+            clearFiltersBtn.addEventListener('click', function() {
+                // 清除所有复选框的选中状态
+                filterCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // 清空筛选器数组
+                currentFilters = {
+                    category: [],
+                    mushroom: [],
+                    tag: []
+                };
+                
+                // 更新已选标签显示
+                updateSelectedTags();
+                
+                // 重新筛选食谱
+                filterRecipes();
+            });
+            
+            // 绑定模态框关闭事件
+            closeDetailModal.addEventListener('click', () => {
+                detailModal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target === detailModal) {
+                    detailModal.style.display = 'none';
+                }
+            });
+        });
+        
+        // 更新筛选器状态
+        function updateFilter(type, value, isChecked) {
+            if (isChecked) {
+                // 如果选中，添加到对应数组
+                if (!currentFilters[type].includes(value)) {
+                    currentFilters[type].push(value);
+                }
+            } else {
+                // 如果取消选中，从对应数组移除
+                const index = currentFilters[type].indexOf(value);
+                if (index !== -1) {
+                    currentFilters[type].splice(index, 1);
+                }
+            }
+        }
+        
+        // 更新已选标签显示
+        function updateSelectedTags() {
+            selectedTagsContainer.innerHTML = '';
+            
+            // 合并所有筛选器
+            const allFilters = [
+                ...currentFilters.category,
+                ...currentFilters.mushroom,
+                ...currentFilters.tag
+            ];
+            
+            if (allFilters.length === 0) {
+                selectedTagsContainer.innerHTML = `
+                    <div class="selected-tag" style="background-color: #f1f8e9; color: #2d4a3a;">
+                        无筛选条件
+                    </div>
+                `;
+                return;
+            }
+            
+            // 为每个已选标签创建一个元素
+            allFilters.forEach(filter => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'selected-tag';
+                
+                // 根据类型设置不同颜色
+                let bgColor = '#4CAF50'; // 默认绿色
+                if (currentFilters.category.includes(filter)) {
+                    bgColor = '#4CAF50'; // 菜品类型 - 绿色
+                } else if (currentFilters.mushroom.includes(filter)) {
+                    bgColor = '#FF9800'; // 蘑菇种类 - 橙色
+                } else if (currentFilters.tag.includes(filter)) {
+                    bgColor = '#8BC34A'; // 其他标签 - 浅绿色
+                }
+                
+                tagElement.style.backgroundColor = bgColor;
+                
+                tagElement.innerHTML = `
+                    ${filter}
+                    <button class="remove-tag" data-filter="${filter}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                selectedTagsContainer.appendChild(tagElement);
+            });
+            
+            // 为移除按钮添加事件
+            const removeButtons = document.querySelectorAll('.remove-tag');
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterValue = this.getAttribute('data-filter');
+                    
+                    // 从对应数组中移除
+                    if (currentFilters.category.includes(filterValue)) {
+                        const index = currentFilters.category.indexOf(filterValue);
+                        currentFilters.category.splice(index, 1);
+                        
+                        // 找到对应的复选框并取消选中
+                        const checkbox = document.querySelector(`.filter-checkbox[value="${filterValue}"]`);
+                        if (checkbox) checkbox.checked = false;
+                    }
+                    
+                    if (currentFilters.mushroom.includes(filterValue)) {
+                        const index = currentFilters.mushroom.indexOf(filterValue);
+                        currentFilters.mushroom.splice(index, 1);
+                        
+                        // 找到对应的复选框并取消选中
+                        const checkbox = document.querySelector(`.filter-checkbox[value="${filterValue}"]`);
+                        if (checkbox) checkbox.checked = false;
+                    }
+                    
+                    if (currentFilters.tag.includes(filterValue)) {
+                        const index = currentFilters.tag.indexOf(filterValue);
+                        currentFilters.tag.splice(index, 1);
+                        
+                        // 找到对应的复选框并取消选中
+                        const checkbox = document.querySelector(`.filter-checkbox[value="${filterValue}"]`);
+                        if (checkbox) checkbox.checked = false;
+                    }
+                    
+                    // 更新显示和重新筛选
+                    updateSelectedTags();
+                    filterRecipes();
+                });
+            });
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            const total = recipeDatabase.length;
+            const easy = recipeDatabase.filter(r => r.difficulty === '简单').length;
+            const vegetarian = recipeDatabase.filter(r => r.tags.includes('素食')).length;
+            
+            // 计算使用了多少种不同的蘑菇
+            const mushroomSet = new Set();
+            recipeDatabase.forEach(recipe => {
+                recipe.mushroomTypes.forEach(mushroom => {
+                    mushroomSet.add(mushroom);
+                });
+            });
+            const mushroomTypes = mushroomSet.size;
+            
+            // 动画显示统计数据
+            animateCount(totalRecipes, total);
+            animateCount(easyRecipes, easy);
+            animateCount(vegetarianRecipes, vegetarian);
+            animateCount(mushroomTypesCount, mushroomTypes);
+        }
+        
+        // 数字动画
+        function animateCount(element, target) {
+            let current = 0;
+            const increment = target / 50; // 分50步完成
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current);
+            }, 20);
+        }
+        
+        // 生成特色食谱
+        function generateFeaturedRecipes() {
+            featuredRecipes.innerHTML = '';
+            
+            // 获取特色食谱（标记为featured的）
+            const featured = recipeDatabase.filter(recipe => recipe.featured);
+            
+            if (featured.length === 0) {
+                featuredRecipes.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-utensils" style="font-size: 3rem; margin-bottom: 20px; color: #FF9800;"></i>
+                        <h3>暂无特色食谱</h3>
+                        <p>请查看我们的完整食谱库</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            featured.forEach(recipe => {
+                // 创建特色食谱项目
+                const recipeItem = document.createElement('div');
+                recipeItem.className = 'featured-item';
+                
+                recipeItem.innerHTML = `
+                    <div class="featured-img">
+                        <img src="${recipe.image}" alt="${recipe.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="featured-content">
+                        <h3>${recipe.name}</h3>
+                        <div>
+                            ${recipe.tags.slice(0, 3).map(tag => `<span class="featured-tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="mushroom-tags" style="margin: 10px 0;">
+                            ${recipe.mushroomTypes.map(mushroom => `<span class="mushroom-tag">${mushroom}</span>`).join('')}
+                        </div>
+                        <p style="flex: 1; margin-bottom: 15px;">${recipe.description}</p>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <span><i class="far fa-clock"></i> 准备: ${recipe.prepTime}</span>
+                            <span><i class="fas fa-fire"></i> 烹饪: ${recipe.cookTime}</span>
+                            <span><i class="fas fa-utensil-spoon"></i> ${recipe.difficulty}</span>
+                        </div>
+                        <button class="search-btn" onclick="showRecipeDetail(${recipe.id})">
+                            <i class="fas fa-book-open"></i> 查看食谱
+                        </button>
+                    </div>
+                `;
+                
+                featuredRecipes.appendChild(recipeItem);
+            });
+        }
+        
+        // 生成食谱图库
+        function generateRecipeGallery() {
+            recipeGallery.innerHTML = '';
+            
+            // 获取过滤后的食谱列表
+            const filteredRecipes = filterRecipeList();
+            
+            if (filteredRecipes.length === 0) {
+                recipeGallery.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; color: #FF9800;"></i>
+                        <h3>未找到匹配的食谱</h3>
+                        <p>请尝试其他搜索词或筛选条件</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredRecipes.forEach(recipe => {
+                // 创建食谱项目
+                const recipeItem = document.createElement('div');
+                recipeItem.className = 'recipe-item';
+                recipeItem.setAttribute('data-tags', recipe.tags.join(','));
+                recipeItem.setAttribute('data-mushrooms', recipe.mushroomTypes.join(','));
+                
+                recipeItem.innerHTML = `
+                    <div class="recipe-img">
+                        <img src="${recipe.image}" alt="${recipe.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="recipe-info">
+                        <h3>${recipe.name}</h3>
+                        <div class="recipe-meta">
+                            <span><i class="far fa-clock"></i> 准备: ${recipe.prepTime}</span>
+                            <span><i class="fas fa-fire"></i> 烹饪: ${recipe.cookTime}</span>
+                            <span><i class="fas fa-utensil-spoon"></i> ${recipe.difficulty}</span>
+                        </div>
+                        <p class="recipe-description">${recipe.description}</p>
+                        <div class="mushroom-tags">
+                            ${recipe.mushroomTypes.map(mushroom => `<span class="mushroom-tag">${mushroom}</span>`).join('')}
+                        </div>
+                        <div class="recipe-tags">
+                            ${recipe.tags.slice(0, 4).map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+                        </div>
+                        <button class="search-btn view-recipe-btn" onclick="showRecipeDetail(${recipe.id})">
+                            <i class="fas fa-book-open"></i> 查看食谱
+                        </button>
+                    </div>
+                `;
+                
+                recipeGallery.appendChild(recipeItem);
+            });
+        }
+        
+        // 过滤食谱列表
+        function filterRecipeList() {
+            return recipeDatabase.filter(recipe => {
+                // 按搜索词过滤
+                if (currentSearch) {
+                    const searchTerm = currentSearch.toLowerCase();
+                    const nameMatch = recipe.name.toLowerCase().includes(searchTerm);
+                    const descMatch = recipe.description.toLowerCase().includes(searchTerm);
+                    const mushroomMatch = recipe.mushroomTypes.some(type => type.toLowerCase().includes(searchTerm));
+                    const tagMatch = recipe.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                    
+                    if (!(nameMatch || descMatch || mushroomMatch || tagMatch)) {
+                        return false;
+                    }
+                }
+                
+                // 按分类筛选器过滤
+                const hasCategoryFilters = currentFilters.category.length > 0;
+                const hasMushroomFilters = currentFilters.mushroom.length > 0;
+                const hasTagFilters = currentFilters.tag.length > 0;
+                
+                // 如果没有筛选条件，返回所有食谱
+                if (!hasCategoryFilters && !hasMushroomFilters && !hasTagFilters) {
+                    return true;
+                }
+                
+                // 检查菜品类型筛选
+                if (hasCategoryFilters) {
+                    const recipeMatchesCategory = currentFilters.category.some(category => 
+                        recipe.tags.includes(category)
+                    );
+                    if (!recipeMatchesCategory) {
+                        return false;
+                    }
+                }
+                
+                // 检查蘑菇种类筛选
+                if (hasMushroomFilters) {
+                    const recipeMatchesMushroom = currentFilters.mushroom.some(mushroom => 
+                        recipe.mushroomTypes.includes(mushroom)
+                    );
+                    if (!recipeMatchesMushroom) {
+                        return false;
+                    }
+                }
+                
+                // 检查其他标签筛选
+                if (hasTagFilters) {
+                    const recipeMatchesTag = currentFilters.tag.some(tag => 
+                        recipe.tags.includes(tag)
+                    );
+                    if (!recipeMatchesTag) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+        
+        // 执行过滤
+        function filterRecipes() {
+            generateRecipeGallery();
+        }
+        
+        // 执行搜索
+        function performSearch() {
+            currentSearch = searchInput.value.trim();
+            filterRecipes();
+        }
+        
+        // 显示食谱详情
+        function showRecipeDetail(id) {
+            const recipe = recipeDatabase.find(r => r.id === id);
+            
+            if (recipe) {
+                // 生成食谱详情HTML
+                detailContent.innerHTML = `
+                    <h3>${recipe.name}</h3>
+                    <div class="recipe-detail-img">
+                        <img src="${recipe.image}" alt="${recipe.name}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="recipe-detail-meta">
+                        <div><i class="far fa-clock"></i> 准备时间: ${recipe.prepTime}</div>
+                        <div><i class="fas fa-fire"></i> 烹饪时间: ${recipe.cookTime}</div>
+                        <div><i class="fas fa-utensil-spoon"></i> 难度: ${recipe.difficulty}</div>
+                        <div><i class="fas fa-user-friends"></i> 份量: ${recipe.servings}</div>
+                    </div>
+                    <p style="margin-bottom: 20px;">${recipe.description}</p>
+                    <div class="mushroom-tags" style="margin-bottom: 15px;">
+                        ${recipe.mushroomTypes.map(mushroom => `<span class="mushroom-tag">${mushroom}</span>`).join('')}
+                    </div>
+                    <div class="recipe-tags">
+                        ${recipe.tags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="recipe-section">
+                        <h4><i class="fas fa-carrot"></i> 所需食材</h4>
+                        <ul class="ingredients-list">
+                            ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="recipe-section">
+                        <h4><i class="fas fa-list-ol"></i> 制作步骤</h4>
+                        <ol class="steps-list">
+                            ${recipe.steps.map((step, index) => `
+                                <li>
+                                    <span class="step-number">${index + 1}</span>
+                                    ${step}
+                                </li>
+                            `).join('')}
+                        </ol>
+                    </div>
+                    <div class="tips">
+                        <h4><i class="fas fa-lightbulb"></i> 烹饪小贴士</h4>
+                        <p>${recipe.tips}</p>
+                    </div>
+                    <button class="search-btn" style="margin-top: 25px;" onclick="detailModal.style.display='none'">
+                        <i class="fas fa-times"></i> 关闭
+                    </button>
+                `;
+                
+                // 显示模态框
+                detailModal.style.display = 'flex';
+            }
+        }
+    </script>
+</body>
+</html>
